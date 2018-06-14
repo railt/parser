@@ -86,9 +86,7 @@ class Parser implements ParserInterface, RulesContainerInterface
 
         $trace = $this->createRuntime()->parse($input, $buffer);
 
-        \var_dump($trace);
-
-        return (new Builder($this, $trace))->reduce();
+        return (new Builder($trace))->reduce();
     }
 
     /**

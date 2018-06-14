@@ -9,50 +9,28 @@ declare(strict_types=1);
 
 namespace Railt\Parser\Ast;
 
-use Railt\Parser\Rule\RulesContainerInterface;
+use Railt\Parser\Ast\Rule as AstRule;
 use Railt\Parser\Runtime\Trace\Entry;
 use Railt\Parser\Runtime\Trace\Escape;
-use Railt\Parser\Runtime\Trace\Invocation;
-use Railt\Parser\Runtime\Trace\Terminator;
-use Railt\Parser\Iterator\Buffer;
-use Railt\Parser\Iterator\BufferInterface;
-use Railt\Lexer\Result\Unknown;
-use Railt\Lexer\LexerInterface;
-use Railt\Parser\Ast\Leaf;
-use Railt\Parser\Ast\Node;
-use Railt\Parser\Ast\NodeInterface;
-use Railt\Parser\Ast\Rule as AstRule;
+use Railt\Parser\Runtime\Trace\TokenTrace;
 
 /**
- * Class TreeBuilder
+ * Class Builder
  */
 class Builder
 {
     /**
-     * @var iterable
+     * @var \Iterator|\Traversable
      */
     private $trace;
 
     /**
-     * @var RulesContainerInterface
-     */
-    private $rules;
-
-    /**
-     * @var int
-     */
-    private $size;
-
-    /**
      * Builder constructor.
-     * @param RulesContainerInterface $rules
      * @param iterable $trace
      */
-    public function __construct(RulesContainerInterface $rules, iterable $trace)
+    public function __construct(iterable $trace)
     {
-        $this->trace = $trace;
-        $this->rules = $rules;
-        $this->size = \count($this->trace);
+        $this->trace = \is_array($trace) ? new \ArrayIterator($trace) : $trace;
     }
 
     /**
@@ -60,101 +38,57 @@ class Builder
      */
     public function reduce(): RuleInterface
     {
-        return $this->buildTree();
+        return $this->build($this->trace)->current();
     }
 
     /**
-     * Build AST from trace.
-     * Walk through the trace iteratively and recursively.
-     *
-     * @param int $i Current trace index.
-     * @param array &$children Collected children.
-     * @return Node|int
+     * @param \Iterator $iterator
+     * @return \Traversable|\Iterator
      */
-    protected function buildTree(int $i = 0, array &$children = [])
+    private function build(\Iterator $iterator): \Traversable
     {
-        while ($i < $this->size) {
-            /** @var Invocation|Terminator $trace */
-            $trace = $this->trace[$i];
+        while ($iterator->valid() && $current = $iterator->current()) {
+            $iterator->next();
 
-            if ($trace instanceof Entry) {
-                $ruleName  = $trace->getRule();
-                $rule      = $this->rules->fetch($ruleName);
-                $isRule    = $trace->isTransitional() === false;
-                $nextTrace = $this->trace[$i + 1];
-                $id        = $rule->getName();
-                $offset    = $trace->getOffset();
-
-                // Optimization: Skip empty trace sequence.
-                if ($nextTrace instanceof Escape && $ruleName === $nextTrace->getRule()) {
-                    $i += 2;
-
-                    continue;
-                }
-
-                if ($isRule === true) {
-                    $children[] = $ruleName;
-                }
-
-                if ($id !== null) {
-                    $children[] = [
-                        'id' => $id,
-                    ];
-                }
-
-                $i = $this->buildTree($i + 1, $children);
-
-                if ($isRule === false) {
-                    continue;
-                }
-
-                $handle = [];
-                $cId    = null;
-
-                do {
-                    $pop = \array_pop($children);
-
-                    if (\is_object($pop) === true) {
-                        $handle[] = $pop;
-                    } elseif (\is_array($pop) === true && $cId === null) {
-                        $cId = $pop['id'];
-                    } elseif ($ruleName === $pop) {
-                        break;
-                    }
-                } while ($pop !== null);
-
-                if ($cId === null) {
-                    for ($j = \count($handle) - 1; $j >= 0; --$j) {
-                        $children[] = $handle[$j];
+            switch (true) {
+                case $current instanceof TokenTrace:
+                    if ($current->isKept()) {
+                        yield $this->leaf($current);
                     }
 
-                    continue;
-                }
+                    break;
+                case $current instanceof Entry:
+                    if ($current->isKept()) {
+                        yield $this->rule($current, $this->build($iterator));
+                    }
 
-                $rule = new AstRule((string)($id ?: $cId), \array_reverse($handle), $offset);
-                $children[] = $rule;
-            } elseif ($trace instanceof Escape) {
-                return $i + 1;
-            } else {
-                if ($trace->isKept() === false) {
-                    ++$i;
-                    continue;
-                }
-
-                $children[] = $this->leaf($trace);
-                ++$i;
+                    break;
+                case $current instanceof Escape:
+                    if ($current->isKept()) {
+                        break 2;
+                    }
             }
         }
-
-        return $children[0];
     }
 
     /**
-     * @param Terminator $terminal
+     * @param TokenTrace $terminal
      * @return LeafInterface
      */
-    private function leaf(Terminator $terminal): LeafInterface
+    private function leaf(TokenTrace $terminal): LeafInterface
     {
         return new Leaf($terminal->getName(), $terminal->getValue(), $terminal->getOffset());
+    }
+
+    /**
+     * @param Entry $entry
+     * @param \Iterator $children
+     * @return RuleInterface
+     */
+    private function rule(Entry $entry, \Iterator $children): RuleInterface
+    {
+        $name = \ltrim($entry->getName(), '#');
+
+        return new AstRule($name, \iterator_to_array($children), $entry->getOffset());
     }
 }

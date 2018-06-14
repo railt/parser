@@ -17,7 +17,7 @@ class Leaf extends Node implements LeafInterface
     /**
      * @var string
      */
-    protected $value;
+    private $value;
 
     /**
      * Leaf constructor.

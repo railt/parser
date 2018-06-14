@@ -10,9 +10,9 @@ declare(strict_types=1);
 namespace Railt\Parser\Runtime\Trace;
 
 /**
- * Class Terminator
+ * Class TokenTrace
  */
-class Terminator
+class TokenTrace implements TraceInterface
 {
     /**
      * @var string
@@ -27,7 +27,7 @@ class Terminator
     /**
      * @var int
      */
-    private $offset;
+    private $offset = 0;
 
     /**
      * @var bool
@@ -38,15 +38,24 @@ class Terminator
      * Terminator constructor.
      * @param string $name
      * @param string $value
-     * @param int $offset
      * @param bool $kept
      */
-    public function __construct(string $name, string $value, int $offset, bool $kept = true)
+    public function __construct(string $name, string $value, bool $kept = true)
     {
         $this->name   = $name;
         $this->value  = $value;
-        $this->offset = $offset;
         $this->kept   = $kept;
+    }
+
+    /**
+     * @param int $offset
+     * @return TraceInterface
+     */
+    public function at(int $offset): TraceInterface
+    {
+        $this->offset = $offset;
+
+        return $this;
     }
 
     /**

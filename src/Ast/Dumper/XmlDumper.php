@@ -7,7 +7,11 @@
  */
 declare(strict_types=1);
 
-namespace Railt\Parser\Ast;
+namespace Railt\Parser\Ast\Dumper;
+
+use Railt\Parser\Ast\LeafInterface;
+use Railt\Parser\Ast\NodeInterface;
+use Railt\Parser\Ast\RuleInterface;
 
 /**
  * Class XmlDumper
@@ -73,16 +77,13 @@ class XmlDumper implements NodeDumperInterface
     {
         if ($ast instanceof LeafInterface) {
             $token = $root->createElement(\class_basename($ast), $ast->getValue());
-
-            $token->setAttribute('name', $ast->getName());
-            $token->setAttribute('offset', (string)$ast->getOffset());
+            $this->renderAttributes($token, $ast);
 
             return $token;
         }
 
         $node = $root->createElement(\class_basename($ast));
-        $node->setAttribute('name', \ltrim($ast->getName(), '#'));
-        $node->setAttribute('offset', (string)$ast->getOffset());
+        $this->renderAttributes($node, $ast);
 
         /** @var NodeInterface $child */
         foreach ($ast->getChildren() as $child) {
@@ -90,6 +91,20 @@ class XmlDumper implements NodeDumperInterface
         }
 
         return $node;
+    }
+
+    /**
+     * @param \DOMElement $node
+     * @param NodeInterface $ast
+     */
+    private function renderAttributes(\DOMElement $node, NodeInterface $ast): void
+    {
+        $reflection = new \ReflectionObject($ast);
+
+        foreach ($reflection->getProperties(\ReflectionProperty::IS_PROTECTED) as $property) {
+            $property->setAccessible(true);
+            $node->setAttribute($property->getName(), (string)$property->getValue($ast));
+        }
     }
 
     /**

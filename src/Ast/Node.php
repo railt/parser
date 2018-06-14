@@ -9,6 +9,8 @@ declare(strict_types=1);
 
 namespace Railt\Parser\Ast;
 
+use Railt\Parser\Ast\Dumper\XmlDumper;
+
 /**
  * Class Node
  */

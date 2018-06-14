@@ -15,7 +15,7 @@ use Railt\Parser\Rule\Symbol;
 /**
  * Class Invocation
  */
-abstract class Invocation
+abstract class Invocation implements TraceInterface
 {
     /**
      * @var Symbol
@@ -49,7 +49,7 @@ abstract class Invocation
      * @param array|null $then
      * @param int $depth
      */
-    public function __construct(Symbol $rule, int $data, array $then = null, int $depth = -1)
+    public function __construct(Symbol $rule, int $data = 0, array $then = null, int $depth = -1)
     {
         $this->rule  = $rule;
         $this->data  = $data;
@@ -59,9 +59,9 @@ abstract class Invocation
 
     /**
      * @param int $offset
-     * @return Invocation
+     * @return TraceInterface
      */
-    public function at(int $offset): self
+    public function at(int $offset): TraceInterface
     {
         $this->offset = $offset;
 
@@ -69,11 +69,31 @@ abstract class Invocation
     }
 
     /**
+     * @return Symbol
+     */
+    public function getRule(): Symbol
+    {
+        return $this->rule;
+    }
+
+    /**
      * @return int
      */
-    public function getRule(): int
+    public function getRuleId(): int
     {
         return $this->rule->getId();
+    }
+
+    /**
+     * @return string
+     */
+    public function getName(): string
+    {
+        if ($this->rule instanceof Production && $this->rule->getName()) {
+            return $this->rule->getName();
+        }
+
+        return (string)$this->getRuleId();
     }
 
     /**
@@ -122,12 +142,12 @@ abstract class Invocation
     /**
      * @return bool
      */
-    public function isTransitional(): bool
+    public function isKept(): bool
     {
         if ($this->rule instanceof Production) {
-            return $this->rule->getName() === null;
+            return $this->rule->getName() !== null;
         }
 
-        return true;
+        return false;
     }
 }

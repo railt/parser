@@ -24,7 +24,8 @@ use Railt\Parser\Rule\Token;
 use Railt\Parser\Runtime\Trace\Entry;
 use Railt\Parser\Runtime\Trace\Escape;
 use Railt\Parser\Runtime\Trace\Invocation;
-use Railt\Parser\Runtime\Trace\Terminator;
+use Railt\Parser\Runtime\Trace\TokenTrace;
+use Railt\Parser\Runtime\Trace\TraceInterface;
 
 /**
  * Class Parser
@@ -32,24 +33,16 @@ use Railt\Parser\Runtime\Trace\Terminator;
 class LlkRuntime implements RuntimeInterface
 {
     /**
-     * Trace of activated rules.
-     *
      * @var array
      */
-    protected $trace = [];
-
-    /**
-     * Then
-     * @var array
-     */
-    protected $todo;
+    private $todo;
 
     /**
      * Current depth while building the trace.
      *
      * @var int
      */
-    protected $depth = -1;
+    private $depth = -1;
 
     /**
      * @var RulesContainerInterface
@@ -60,6 +53,11 @@ class LlkRuntime implements RuntimeInterface
      * @var Production
      */
     private $root;
+
+    /**
+     * @var TraceInterface[]
+     */
+    private $trace;
 
     /**
      * LlkRuntime constructor.
@@ -73,59 +71,108 @@ class LlkRuntime implements RuntimeInterface
     }
 
     /**
+     * @return void
+     */
+    private function reset(): void
+    {
+        $close = new Escape($this->root);
+        $entry = new Entry($this->root, 0, [$close]);
+
+        $this->depth = -1;
+        $this->trace = [];
+        $this->todo  = [$close, $entry];
+    }
+
+    /**
      * @param Readable $input
      * @param BufferInterface $buffer
-     * @return iterable
+     * @return iterable|TraceInterface[]
      */
     public function parse(Readable $input, BufferInterface $buffer): iterable
     {
-        $this->trace = [];
-        $this->todo  = [];
-
-        $closeRule  = new Escape($this->root, 0);
-        $openRule   = new Entry($this->root, 0, [$closeRule]);
-        $this->todo = [$closeRule, $openRule];
+        $this->reset();
 
         do {
-            $out = $this->unfold($buffer);
-
-            if ($out !== null && $buffer->current()->name() === Eoi::T_NAME) {
+            if ($this->isComplete($buffer, $this->unfold($buffer))) {
                 break;
             }
 
             if ($this->backtrack($buffer) === false) {
-                /** @var TokenInterface $token */
-                $token = $buffer->top();
-
-                $error = \sprintf('Unexpected token "%s" (%s)', $token->value(), $token->name());
-                throw (new UnexpectedTokenException($error))->throwsIn($input, $token->offset());
+                $this->throwUnexpectedToken($input, $buffer);
             }
-        } while (true);
 
-        return $this->trace;
+            yield from $this->reduce();
+        } while (true);
+    }
+
+    /**
+     * @return \Traversable|TraceInterface[]
+     */
+    private function reduce(): \Traversable
+    {
+        yield from $this->trace;
+
+        $this->trace = [];
     }
 
     /**
      * @param BufferInterface $buffer
-     * @return bool|null
+     * @param bool $out
+     * @return bool
      */
-    protected function unfold(BufferInterface $buffer): ?bool
+    private function isComplete(BufferInterface $buffer, bool $out): bool
     {
-        while (0 < \count($this->todo)) {
+        return $out && $this->isEoi($buffer->current());
+    }
+
+    /**
+     * @param TokenInterface $token
+     * @return bool
+     */
+    private function isEoi(TokenInterface $token): bool
+    {
+        return $token instanceof Eoi;
+    }
+
+    /**
+     * @param Readable $input
+     * @param BufferInterface $buffer
+     */
+    private function throwUnexpectedToken(Readable $input, BufferInterface $buffer): void
+    {
+        /** @var TokenInterface $token */
+        $token = $buffer->top();
+
+        [$name, $value] = [$token->name(), $token->value()];
+
+        $error = $this->isEoi($token)
+            ? \sprintf('Unexpected end of input (%s)', $name)
+            : \sprintf('Unexpected token "%s" (%s)', $value, $name);
+
+        throw (new UnexpectedTokenException($error))->throwsIn($input, $token->offset());
+    }
+
+    /**
+     * @param BufferInterface $buffer
+     * @return bool
+     */
+    protected function unfold(BufferInterface $buffer): bool
+    {
+        while (\count($this->todo) > 0) {
             $rule = \array_pop($this->todo);
 
             if ($rule instanceof Escape) {
                 $rule->setDepth($this->depth);
-                $this->trace($rule, $buffer);
+                $this->rule($rule, $buffer);
 
-                if ($rule->isTransitional() === false) {
+                if (! $rule->isKept()) {
                     --$this->depth;
                 }
             } else {
-                $out = $this->parseCurrentRule($buffer, $this->fetch($rule->getRule()), $rule->getData());
+                $out = $this->parseCurrentRule($buffer, $this->fetch($rule->getRuleId()), $rule->getData());
 
                 if ($out === false && $this->backtrack($buffer) === false) {
-                    return null;
+                    return false;
                 }
             }
         }
@@ -137,11 +184,22 @@ class LlkRuntime implements RuntimeInterface
      * @param Invocation $invocation
      * @param BufferInterface $buffer
      */
-    private function trace(Invocation $invocation, BufferInterface $buffer): void
+    private function rule(Invocation $invocation, BufferInterface $buffer): void
     {
         $this->trace[] = $invocation;
 
         $invocation->at($buffer->current()->offset());
+    }
+
+    /**
+     * @param TokenTrace $token
+     * @param BufferInterface $buffer
+     */
+    private function token(TokenTrace $token, BufferInterface $buffer): void
+    {
+        $this->trace[] = $token;
+
+        $token->at($buffer->current()->offset());
     }
 
     /**
@@ -161,31 +219,13 @@ class LlkRuntime implements RuntimeInterface
                 return $this->parseConcatenation($buffer, $rule);
 
             case $rule instanceof Alternation:
-                    return $this->parseAlternation($buffer, $rule, $next);
+                return $this->parseAlternation($buffer, $rule, $next);
 
             case $rule instanceof Repetition:
                 return $this->parseRepetition($buffer, $rule, $next);
         }
 
         return false;
-    }
-
-    /**
-     * @param BufferInterface $buffer
-     * @param Concatenation $concat
-     * @return bool
-     */
-    private function parseConcatenation(BufferInterface $buffer, Concatenation $concat): bool
-    {
-        $this->trace(new Entry($concat, 0, null, $this->depth), $buffer);
-        $children = $concat->then();
-
-        for ($i = \count($children) - 1; $i >= 0; --$i) {
-            $this->todo[] = new Escape($this->fetch($children[$i]), 0);
-            $this->todo[] = new Entry($this->fetch($children[$i]), 0);
-        }
-
-        return true;
     }
 
     /**
@@ -201,16 +241,41 @@ class LlkRuntime implements RuntimeInterface
             return false;
         }
 
-        $value = $buffer->current()->value();
-        $current = $buffer->current();
-        $offset = $current->offset();
+        $value   = $buffer->current()->value();
 
         \array_pop($this->todo);
 
-        $this->trace[] = new Terminator($token->getName(), $value, $offset, $token->isKept());
+        $this->token(new TokenTrace($token->getName(), $value, $token->isKept()), $buffer);
         $buffer->next();
 
         return true;
+    }
+
+    /**
+     * @param BufferInterface $buffer
+     * @param Concatenation $concat
+     * @return bool
+     */
+    private function parseConcatenation(BufferInterface $buffer, Concatenation $concat): bool
+    {
+        $this->rule(new Entry($concat, 0, null, $this->depth), $buffer);
+        $children = $concat->then();
+
+        for ($i = \count($children) - 1; $i >= 0; --$i) {
+            $this->todo[] = new Escape($this->fetch($children[$i]));
+            $this->todo[] = new Entry($this->fetch($children[$i]));
+        }
+
+        return true;
+    }
+
+    /**
+     * @param int $id
+     * @return null|Symbol|Production
+     */
+    private function fetch(int $id): ?Symbol
+    {
+        return $this->rules->fetch($id);
     }
 
     /**
@@ -227,10 +292,10 @@ class LlkRuntime implements RuntimeInterface
             return false;
         }
 
-        $this->trace(new Entry($choice, $next, $this->todo, $this->depth), $buffer);
+        $this->rule(new Entry($choice, $next, $this->todo, $this->depth), $buffer);
 
-        $this->todo[] = new Escape($this->fetch($children[$next]), 0);
-        $this->todo[] = new Entry($this->fetch($children[$next]), 0);
+        $this->todo[] = new Escape($this->fetch($children[$next]));
+        $this->todo[] = new Entry($this->fetch($children[$next]));
 
         return true;
     }
@@ -246,15 +311,15 @@ class LlkRuntime implements RuntimeInterface
         $nextRule = $repeat->then()[0];
 
         if ($next === 0) {
-            $min  = $repeat->from();
+            $min = $repeat->from();
 
-            $this->trace(new Entry($repeat, $min, null, $this->depth), $buffer);
+            $this->rule(new Entry($repeat, $min, null, $this->depth), $buffer);
             \array_pop($this->todo);
             $this->todo[] = new Escape($repeat, $min, $this->todo);
 
             for ($i = 0; $i < $min; ++$i) {
-                $this->todo[] = new Escape($this->fetch($nextRule), 0);
-                $this->todo[] = new Entry($this->fetch($nextRule), 0);
+                $this->todo[] = new Escape($this->fetch($nextRule));
+                $this->todo[] = new Entry($this->fetch($nextRule));
             }
 
             return true;
@@ -268,19 +333,10 @@ class LlkRuntime implements RuntimeInterface
 
         $this->todo[] = new Escape($repeat, $next, $this->todo);
 
-        $this->todo[] = new Escape($this->fetch($nextRule), 0);
-        $this->todo[] = new Entry($this->fetch($nextRule), 0);
+        $this->todo[] = new Escape($this->fetch($nextRule));
+        $this->todo[] = new Entry($this->fetch($nextRule));
 
         return true;
-    }
-
-    /**
-     * @param int $id
-     * @return null|Symbol|Production
-     */
-    private function fetch(int $id): ?Symbol
-    {
-        return $this->rules->fetch($id);
     }
 
     /**
@@ -297,10 +353,10 @@ class LlkRuntime implements RuntimeInterface
             $last = \array_pop($this->trace);
 
             if ($last instanceof Entry) {
-                $found = $this->fetch($last->getRule()) instanceof Alternation;
+                $found = $this->fetch($last->getRuleId()) instanceof Alternation;
             } elseif ($last instanceof Escape) {
-                $found = $this->fetch($last->getRule()) instanceof Repetition;
-            } elseif ($last instanceof Terminator) {
+                $found = $this->fetch($last->getRuleId()) instanceof Repetition;
+            } elseif ($last instanceof TokenTrace) {
                 $buffer->previous();
 
                 if ($buffer->valid() === false) {
@@ -315,7 +371,7 @@ class LlkRuntime implements RuntimeInterface
 
         $this->depth  = $last->getDepth();
         $this->todo   = $last->getTodo();
-        $this->todo[] = new Entry($this->fetch($last->getRule()), $last->getData() + 1);
+        $this->todo[] = new Entry($this->fetch($last->getRuleId()), $last->getData() + 1);
 
         return true;
     }
