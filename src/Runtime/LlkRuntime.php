@@ -71,22 +71,10 @@ class LlkRuntime implements RuntimeInterface
     }
 
     /**
-     * @return void
-     */
-    private function reset(): void
-    {
-        $close = new Escape($this->root);
-        $entry = new Entry($this->root, 0, [$close]);
-
-        $this->depth = -1;
-        $this->trace = [];
-        $this->todo  = [$close, $entry];
-    }
-
-    /**
      * @param Readable $input
      * @param BufferInterface $buffer
      * @return iterable|TraceInterface[]
+     * @throws \Railt\Io\Exception\ExternalFileException
      */
     public function parse(Readable $input, BufferInterface $buffer): iterable
     {
@@ -106,13 +94,16 @@ class LlkRuntime implements RuntimeInterface
     }
 
     /**
-     * @return \Traversable|TraceInterface[]
+     * @return void
      */
-    private function reduce(): \Traversable
+    private function reset(): void
     {
-        yield from $this->trace;
+        $close = new Escape($this->root);
+        $entry = new Entry($this->root, 0, [$close]);
 
+        $this->depth = -1;
         $this->trace = [];
+        $this->todo  = [$close, $entry];
     }
 
     /**
@@ -132,24 +123,6 @@ class LlkRuntime implements RuntimeInterface
     private function isEoi(TokenInterface $token): bool
     {
         return $token instanceof Eoi;
-    }
-
-    /**
-     * @param Readable $input
-     * @param BufferInterface $buffer
-     */
-    private function throwUnexpectedToken(Readable $input, BufferInterface $buffer): void
-    {
-        /** @var TokenInterface $token */
-        $token = $buffer->top();
-
-        [$name, $value] = [$token->name(), $token->value()];
-
-        $error = $this->isEoi($token)
-            ? \sprintf('Unexpected end of input (%s)', $name)
-            : \sprintf('Unexpected token "%s" (%s)', $value, $name);
-
-        throw (new UnexpectedTokenException($error))->throwsIn($input, $token->offset());
     }
 
     /**
@@ -192,17 +165,6 @@ class LlkRuntime implements RuntimeInterface
     }
 
     /**
-     * @param TokenTrace $token
-     * @param BufferInterface $buffer
-     */
-    private function token(TokenTrace $token, BufferInterface $buffer): void
-    {
-        $this->trace[] = $token;
-
-        $token->at($buffer->current()->offset());
-    }
-
-    /**
      * Parse current rule
      * @param BufferInterface $buffer
      * @param Symbol $rule Current rule.
@@ -241,7 +203,7 @@ class LlkRuntime implements RuntimeInterface
             return false;
         }
 
-        $value   = $buffer->current()->value();
+        $value = $buffer->current()->value();
 
         \array_pop($this->todo);
 
@@ -249,6 +211,17 @@ class LlkRuntime implements RuntimeInterface
         $buffer->next();
 
         return true;
+    }
+
+    /**
+     * @param TokenTrace $token
+     * @param BufferInterface $buffer
+     */
+    private function token(TokenTrace $token, BufferInterface $buffer): void
+    {
+        $this->trace[] = $token;
+
+        $token->at($buffer->current()->offset());
     }
 
     /**
@@ -374,5 +347,34 @@ class LlkRuntime implements RuntimeInterface
         $this->todo[] = new Entry($this->fetch($last->getRuleId()), $last->getData() + 1);
 
         return true;
+    }
+
+    /**
+     * @param Readable $input
+     * @param BufferInterface $buffer
+     * @throws \Railt\Io\Exception\ExternalFileException
+     */
+    private function throwUnexpectedToken(Readable $input, BufferInterface $buffer): void
+    {
+        /** @var TokenInterface $token */
+        $token = $buffer->top();
+
+        [$name, $value] = [$token->name(), $token->value()];
+
+        $error = $this->isEoi($token)
+            ? \sprintf('Unexpected end of input (%s)', $name)
+            : \sprintf('Unexpected token "%s" (%s)', $value, $name);
+
+        throw (new UnexpectedTokenException($error))->throwsIn($input, $token->offset());
+    }
+
+    /**
+     * @return \Traversable|TraceInterface[]
+     */
+    private function reduce(): \Traversable
+    {
+        yield from $this->trace;
+
+        $this->trace = [];
     }
 }

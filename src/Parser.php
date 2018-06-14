@@ -30,10 +30,8 @@ use Railt\Parser\Runtime\RuntimeInterface;
  */
 class Parser implements ParserInterface, RulesContainerInterface
 {
-    /**
-     * @var int
-     */
-    protected $lookahead = 1024;
+    public const PRAGMA_LOOKAHEAD = 'parser.lookahead';
+    public const PRAGMA_ROOT = 'parser.root';
 
     /**
      * @var array|Symbol[]
@@ -51,13 +49,20 @@ class Parser implements ParserInterface, RulesContainerInterface
     private $root;
 
     /**
+     * @var Configuration
+     */
+    private $config;
+
+    /**
      * Parser constructor.
      * @param LexerInterface $lexer
      * @param iterable $rules
+     * @param Configuration|null $config
      */
-    public function __construct(LexerInterface $lexer, iterable $rules = [])
+    public function __construct(LexerInterface $lexer, iterable $rules = [], Configuration $config = null)
     {
         $this->lexer = $lexer;
+        $this->config = $config ?? new Configuration();
 
         foreach ($rules as $rule) {
             $this->add($rule);
@@ -78,6 +83,8 @@ class Parser implements ParserInterface, RulesContainerInterface
     /**
      * @param Readable $input
      * @return RuleInterface
+     * @throws UnrecognizedRuleException
+     * @throws \Railt\Io\Exception\ExternalFileException
      */
     public function parse(Readable $input): RuleInterface
     {
@@ -92,15 +99,19 @@ class Parser implements ParserInterface, RulesContainerInterface
     /**
      * @param Readable $input
      * @return BufferInterface
+     * @throws \Railt\Io\Exception\ExternalFileException
      */
     protected function createBuffer(Readable $input): BufferInterface
     {
-        return new Buffer($this->lex($input), $this->lookahead);
+        $lookahead = (int)$this->config->get(static::PRAGMA_LOOKAHEAD, 1024);
+
+        return new Buffer($this->lex($input), $lookahead);
     }
 
     /**
      * @param Readable $input
      * @return \Traversable|TokenInterface[]
+     * @throws \Railt\Io\Exception\ExternalFileException
      */
     protected function lex(Readable $input): \Traversable
     {
@@ -118,6 +129,7 @@ class Parser implements ParserInterface, RulesContainerInterface
 
     /**
      * @return RuntimeInterface
+     * @throws UnrecognizedRuleException
      */
     protected function createRuntime(): RuntimeInterface
     {
@@ -126,25 +138,27 @@ class Parser implements ParserInterface, RulesContainerInterface
 
     /**
      * @return Production|Symbol
+     * @throws UnrecognizedRuleException
      */
     protected function getRootRule(): Production
     {
-        if ($this->root === null) {
-            foreach ($this->rules as $rule) {
-                if ($rule instanceof Production && $rule->getName()) {
+        $name = $this->config->get(static::PRAGMA_ROOT);
+
+        foreach ($this->rules as $rule) {
+            if ($rule instanceof Production && $rule->getName()) {
+                if ($name === null || $rule->getName() === $name) {
                     return $rule;
                 }
             }
-
-            throw new UnrecognizedRuleException('Can not resolve root rule');
         }
 
-        return $this->fetch($this->root);
+        throw new UnrecognizedRuleException('Can not resolve root rule');
     }
 
     /**
      * @param int|string $id
      * @return Symbol
+     * @throws UnrecognizedRuleException
      */
     public function fetch($id): Symbol
     {
