@@ -144,3 +144,51 @@ new Token(<RULE_ID>, 'T_NUMBER');
 // Lexer: `->add('T_WHITESPACE', '\\s+')`
 new Token(<RULE_ID>, 'T_WHITESPACE', false);
 ```
+
+## Examples
+
+A more complex example of a math:
+
+```ebnf
+expression = T_NUMBER operation ( T_NUMBER | expression ) ;
+operation = T_PLUS | T_MINUS ;
+```
+
+```php
+$parser = new Parser($lexer, [
+    new Concatenation(0, [8, 6, 7], 'expression'),  // expression = T_NUMBER operation ( ... ) ;
+    new Alternation(7, [8, 0]),                     // ( T_NUMBER | expression ) ;
+    new Alternation(6, [1, 2], 'operation'),        // operation = T_PLUS | T_MINUS ;
+    new Token(8, 'T_NUMBER'),
+    new Token(1, 'T_PLUS'),
+    new Token(2, 'T_MINUS'),
+], [Parser::PRAGMA_ROOT => 'expression']);
+
+echo $parser->parse(File::fromSources('2 + 2 - 10 + 1000'));
+```
+
+Result:
+
+```xml
+<Ast>
+  <Rule name="expression" offset="0">
+    <Leaf name="T_NUMBER" offset="0">2</Leaf>
+    <Rule name="operation" offset="2">
+      <Leaf name="T_PLUS" offset="2">+</Leaf>
+    </Rule>
+    <Rule name="expression" offset="4">
+      <Leaf name="T_NUMBER" offset="4">2</Leaf>
+      <Rule name="operation" offset="6">
+        <Leaf name="T_MINUS" offset="6">-</Leaf>
+      </Rule>
+      <Rule name="expression" offset="8">
+        <Leaf name="T_NUMBER" offset="8">10</Leaf>
+        <Rule name="operation" offset="11">
+          <Leaf name="T_PLUS" offset="11">+</Leaf>
+        </Rule>
+        <Leaf name="T_NUMBER" offset="13">1000</Leaf>
+      </Rule>
+    </Rule>
+  </Rule>
+</Ast>
+```
