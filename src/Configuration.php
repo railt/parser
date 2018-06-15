@@ -9,8 +9,6 @@ declare(strict_types=1);
 
 namespace Railt\Parser;
 
-use Railt\Parser\Pragma\ParameterInterface;
-
 /**
  * Class Configuration
  */
@@ -27,18 +25,19 @@ class Configuration
      */
     public function __construct(iterable $parameters = [])
     {
-        foreach ($parameters as $parameter) {
-            $this->add($parameter);
+        foreach ($parameters as $name => $value) {
+            $this->add($name, $value);
         }
     }
 
     /**
-     * @param ParameterInterface $parameter
+     * @param string $name
+     * @param $value
      * @return Configuration
      */
-    public function add(ParameterInterface $parameter): Configuration
+    public function add(string $name, $value): Configuration
     {
-        $this->params[$parameter->getName()] = $parameter->getValue();
+        $this->params[$name] = $value;
 
         return $this;
     }

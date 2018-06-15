@@ -23,12 +23,12 @@ class Token extends BaseSymbol implements Terminal
      * Token constructor.
      * @param string|int $id
      * @param string $name
-     * @param bool $kept
+     * @param bool $keep
      */
-    public function __construct($id, string $name, bool $kept = false)
+    public function __construct($id, string $name, bool $keep = false)
     {
         $this->name = $name;
-        parent::__construct($id, $kept);
+        parent::__construct($id, $keep);
     }
 
     /**

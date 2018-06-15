@@ -35,9 +35,14 @@ class Builder
 
     /**
      * @return RuleInterface
+     * @throws \LogicException
      */
     public function reduce(): RuleInterface
     {
+        if (! $this->trace->current()) {
+            throw new \LogicException('Could not create AST from empty trace');
+        }
+
         return $this->build($this->trace)->current();
     }
 

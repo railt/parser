@@ -60,12 +60,12 @@ class Parser implements ParserInterface, RulesContainerInterface
      * Parser constructor.
      * @param LexerInterface $lexer
      * @param iterable $rules
-     * @param Configuration|null $config
+     * @param array $config
      */
-    public function __construct(LexerInterface $lexer, iterable $rules = [], Configuration $config = null)
+    public function __construct(LexerInterface $lexer, iterable $rules = [], array $config = [])
     {
         $this->lexer  = $lexer;
-        $this->config = $config ?? new Configuration();
+        $this->config = new Configuration($config);
 
         foreach ($rules as $rule) {
             $this->add($rule);
@@ -87,6 +87,7 @@ class Parser implements ParserInterface, RulesContainerInterface
      * @param Readable $input
      * @return RuleInterface
      * @throws UnrecognizedRuleException
+     * @throws \LogicException
      * @throws \Railt\Io\Exception\ExternalFileException
      */
     public function parse(Readable $input): RuleInterface

@@ -80,7 +80,7 @@ class LlkRuntime implements RuntimeInterface
     {
         $this->reset();
 
-        do {
+        while (true) {
             if ($this->isComplete($buffer, $this->unfold($buffer))) {
                 break;
             }
@@ -90,7 +90,9 @@ class LlkRuntime implements RuntimeInterface
             }
 
             yield from $this->reduce();
-        } while (true);
+        }
+
+        yield from $this->reduce();
     }
 
     /**
