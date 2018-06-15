@@ -22,7 +22,6 @@ use Railt\Parser\Iterator\BufferInterface;
 use Railt\Parser\Rule\Production;
 use Railt\Parser\Rule\RulesContainerInterface;
 use Railt\Parser\Rule\Symbol;
-use Railt\Parser\Runtime\LlkRuntime;
 use Railt\Parser\Runtime\RuntimeInterface;
 
 /**
@@ -31,7 +30,8 @@ use Railt\Parser\Runtime\RuntimeInterface;
 class Parser implements ParserInterface, RulesContainerInterface
 {
     public const PRAGMA_LOOKAHEAD = 'parser.lookahead';
-    public const PRAGMA_ROOT = 'parser.root';
+    public const PRAGMA_ROOT      = 'parser.root';
+    public const PRAGMA_RUNTIME   = 'parser.runtime';
 
     /**
      * @var array|Symbol[]
@@ -44,14 +44,17 @@ class Parser implements ParserInterface, RulesContainerInterface
     private $lexer;
 
     /**
-     * @var int|null
-     */
-    private $root;
-
-    /**
      * @var Configuration
      */
     private $config;
+
+    /**
+     * @var array|string[]
+     */
+    private $runtime = [
+        'llk' => Runtime\LlkRuntime::class,
+        'll1' => Runtime\Ll1Runtime::class,
+    ];
 
     /**
      * Parser constructor.
@@ -61,7 +64,7 @@ class Parser implements ParserInterface, RulesContainerInterface
      */
     public function __construct(LexerInterface $lexer, iterable $rules = [], Configuration $config = null)
     {
-        $this->lexer = $lexer;
+        $this->lexer  = $lexer;
         $this->config = $config ?? new Configuration();
 
         foreach ($rules as $rule) {
@@ -133,7 +136,10 @@ class Parser implements ParserInterface, RulesContainerInterface
      */
     protected function createRuntime(): RuntimeInterface
     {
-        return new LlkRuntime($this, $this->getRootRule());
+        $key     = $this->config->get(static::PRAGMA_RUNTIME, \array_keys($this->runtime)[0]);
+        $runtime = $this->runtime[$key] ?? \array_values($this->runtime)[0];
+
+        return new $runtime($this, $this->getRootRule());
     }
 
     /**

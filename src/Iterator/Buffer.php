@@ -47,6 +47,7 @@ class Buffer implements \Countable, BufferInterface
         $this->values = new \SplDoublyLinkedList();
 
         $this->next();
+        $this->rewind();
     }
 
     /**

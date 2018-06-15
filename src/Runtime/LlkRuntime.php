@@ -161,7 +161,7 @@ class LlkRuntime implements RuntimeInterface
     {
         $this->trace[] = $invocation;
 
-        $invocation->at($buffer->current()->offset());
+        $invocation->at($buffer->current() ? $buffer->current()->offset() : 0);
     }
 
     /**
@@ -173,6 +173,10 @@ class LlkRuntime implements RuntimeInterface
      */
     protected function parseCurrentRule(BufferInterface $buffer, Symbol $rule, $next): bool
     {
+        if (! $buffer->current()) {
+            return false;
+        }
+
         switch (true) {
             case $rule instanceof Token:
                 return $this->parseToken($buffer, $rule);
