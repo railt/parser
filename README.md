@@ -12,3 +12,132 @@
 </p>
 
 # Parser
+
+The parser provides a set of components for grammar analysis (Parsing) of the source code 
+and converting them into an abstract syntax tree (AST).
+
+For the beginning it is necessary to familiarize with parsing algorithms. This implementation,
+although it allows you to switch between runtime, but provides out of the box two 
+implementations: [LL(1) - Simple and LL(k) - Lookahead](https://en.wikipedia.org/wiki/LL_parser).
+
+In order to create your own parser we need:
+1) Create lexer
+2) Create grammar
+
+## Lexer
+
+Let's create a primitive lexer that can handle spaces, numbers and the addition character.
+
+> More information about the lexer can be found in [this repository](https://github.com/railt/lexer).
+
+```php
+$lexer = new Railt\Lexer\Driver\NativeStateless();
+$lexer->add('T_WHITESPACE', '\\s+', false); 
+$lexer->add('T_NUMBER', '\\d+');
+$lexer->add('T_PLUS', '\\+');
+```
+
+## Grammar
+
+Grammar will be a little more complicated. We need to determine in what order 
+the tokens in the source text can be located, which we will parse.
+
+First we start with the [(E)BNF format](https://en.wikipedia.org/wiki/Extended_Backus%E2%80%93Naur_form):
+
+```ebnf
+(* A simple example of adding two numbers will look like this: *)
+expr = T_NUMBER T_PLUS T_NUMBER ;
+```
+
+To define this rule inside the Parser, we simply use two classes that define the rules 
+inside the product, this is the [concatenation](https://en.wikipedia.org/wiki/Concatenation) 
+and definitions of the tokens.
+
+```php
+//
+// This (e)BNF construction:
+// expr = T_NUMBER T_PLUS T_NUMBER ;
+// 
+// Looks like:
+// Concatenation1 = Token1 Token2 Token1
+//
+$parser = new Railt\Parser\Parser($lexer, [
+    new Railt\Parser\Rule\Concatenation(0, [1, 2, 1], 'expr'),
+    new Railt\Parser\Rule\Token(1, 'T_NUMBER'),
+    new Railt\Parser\Rule\Token(2, 'T_PLUS'),
+]);
+```
+
+In order to test the grammar, we can simply parse the source.
+
+```php
+echo $parser->parse(Railt\Io\File::fromSources('2 + 2'));
+```
+
+Will outputs:
+```xml
+<Ast>
+    <Rule name="expr" offset="0">
+        <Leaf name="T_NUMBER" offset="0">2</Leaf>
+        <Leaf name="T_PLUS" offset="2">+</Leaf>
+        <Leaf name="T_NUMBER" offset="4">2</Leaf>
+    </Rule>
+</Ast>
+```
+
+But if the source is wrong, the parser will tell you exactly where the error occurred:
+
+```php
+echo $parser->parse(Railt\Io\File::fromSources('2 + + 2'));
+//                                                  ^
+//
+// throws "Railt\Parser\Exception\UnexpectedTokenException" with message: 
+// "Unexpected token '+' (T_PLUS) at line 1 and column 5"
+```
+
+In addition, there are other grammar rules.
+
+### Alternation 
+
+Choosing between several rules.
+
+```php
+// EBNF: choice = some | any ;
+new Alternation(<RULE_ID>, [<some_ID>, <any_ID>], <OPTIONAL_RULE_NAME>);
+```
+
+### Concatenation 
+
+Sequence of rules.
+
+```php
+// EBNF: concat = some any ololo;
+new Concatenation(<RULE_ID>, [<some_ID>, <any_ID>, <ololo_ID>], <OPTIONAL_RULE_NAME>);
+```
+
+### Repetition
+
+Repeat one or more rules.
+
+```php
+// EBNF: repeat zero or more = some*
+new Repetition(<RULE_ID>, 0, -1, [<some_ID>], <OPTIONAL_RULE_NAME>);
+
+// EBNF: repeat one or more = some+
+new Repetition(<RULE_ID>, 1, -1, [<some_ID>], <OPTIONAL_RULE_NAME>);
+
+// EBNF: repeat = (some any)*
+new Repetition(<RULE_ID>, 0, -1, [<some_ID>, <any_ID>], <OPTIONAL_RULE_NAME>);
+
+// EBNF: repeat zero or one = [some]
+new Repetition(<RULE_ID>, 0, 1, [<some_ID>, <any_ID>], <OPTIONAL_RULE_NAME>);
+```
+
+### Token
+
+Refers to the token defined in the lexer.
+
+```php
+// Lexer: `->add('TOKEN_NAME', '\\d+')`
+new Token(<RULE_ID>, <TOKEN_NAME>, <IS_NOT_HIDDEN>);
+```

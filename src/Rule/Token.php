@@ -25,7 +25,7 @@ class Token extends BaseSymbol implements Terminal
      * @param string $name
      * @param bool $keep
      */
-    public function __construct($id, string $name, bool $keep = false)
+    public function __construct($id, string $name, bool $keep = true)
     {
         $this->name = $name;
         parent::__construct($id, $keep);
