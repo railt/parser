@@ -103,7 +103,7 @@ Choosing between several rules.
 
 ```php
 // EBNF: choice = some | any ;
-new Alternation(<RULE_ID>, [<some_ID>, <any_ID>], <OPTIONAL_RULE_NAME>);
+new Alternation(<RULE_ID>, [<some_ID>, <any_ID>], 'choice');
 ```
 
 ### Concatenation 
@@ -112,7 +112,7 @@ Sequence of rules.
 
 ```php
 // EBNF: concat = some any ololo;
-new Concatenation(<RULE_ID>, [<some_ID>, <any_ID>, <ololo_ID>], <OPTIONAL_RULE_NAME>);
+new Concatenation(<RULE_ID>, [<some_ID>, <any_ID>, <ololo_ID>], 'concat');
 ```
 
 ### Repetition
@@ -121,16 +121,16 @@ Repeat one or more rules.
 
 ```php
 // EBNF: repeat zero or more = some*
-new Repetition(<RULE_ID>, 0, -1, [<some_ID>], <OPTIONAL_RULE_NAME>);
+new Repetition(<RULE_ID>, 0, -1, [<some_ID>], 'repeat zero or more');
 
 // EBNF: repeat one or more = some+
-new Repetition(<RULE_ID>, 1, -1, [<some_ID>], <OPTIONAL_RULE_NAME>);
+new Repetition(<RULE_ID>, 1, -1, [<some_ID>], 'repeat one or more');
 
 // EBNF: repeat = (some any)*
-new Repetition(<RULE_ID>, 0, -1, [<some_ID>, <any_ID>], <OPTIONAL_RULE_NAME>);
+new Repetition(<RULE_ID>, 0, -1, [<some_ID>, <any_ID>], 'repeat');
 
 // EBNF: repeat zero or one = [some]
-new Repetition(<RULE_ID>, 0, 1, [<some_ID>, <any_ID>], <OPTIONAL_RULE_NAME>);
+new Repetition(<RULE_ID>, 0, 1, [<some_ID>, <any_ID>], 'repeat zero or one');
 ```
 
 ### Token
@@ -138,6 +138,9 @@ new Repetition(<RULE_ID>, 0, 1, [<some_ID>, <any_ID>], <OPTIONAL_RULE_NAME>);
 Refers to the token defined in the lexer.
 
 ```php
-// Lexer: `->add('TOKEN_NAME', '\\d+')`
-new Token(<RULE_ID>, <TOKEN_NAME>, <IS_NOT_HIDDEN>);
+// Lexer: `->add('T_NUMBER', '\\d+')`
+new Token(<RULE_ID>, 'T_NUMBER');
+
+// Lexer: `->add('T_WHITESPACE', '\\s+')`
+new Token(<RULE_ID>, 'T_WHITESPACE', false);
 ```
