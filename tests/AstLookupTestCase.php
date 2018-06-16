@@ -65,45 +65,45 @@ class AstLookupTestCase extends TestCase
 
         $ast = $parser->parse(File::fromSources('2 + 2 - 10 + 1000'));
 
-        $this->assertEquals('<Ast>
-  <Rule name="Operation" offset="2">
-    <Leaf name="T_PLUS" offset="2">+</Leaf>
-  </Rule>
-</Ast>', (string)$ast->first('Operation'));
+        $this->assertAst('<Ast>
+            <Operation offset="2">
+                <T_PLUS offset="2">+</T_PLUS>
+            </Operation>
+        </Ast>', $ast->first('Operation'));
 
-        $this->assertEquals('<Ast>
-  <Rule name="Expression" offset="0">
-    <Leaf name="T_NUMBER" offset="0">2</Leaf>
-    <Rule name="Operation" offset="2">
-      <Leaf name="T_PLUS" offset="2">+</Leaf>
-    </Rule>
-    <Rule name="Expression" offset="4">
-      <Leaf name="T_NUMBER" offset="4">2</Leaf>
-      <Rule name="Operation" offset="6">
-        <Leaf name="T_MINUS" offset="6">-</Leaf>
-      </Rule>
-      <Rule name="Expression" offset="8">
-        <Leaf name="T_NUMBER" offset="8">10</Leaf>
-        <Rule name="Operation" offset="11">
-          <Leaf name="T_PLUS" offset="11">+</Leaf>
-        </Rule>
-        <Leaf name="T_NUMBER" offset="13">1000</Leaf>
-      </Rule>
-    </Rule>
-  </Rule>
-</Ast>', (string)$ast->first('Expression'));
+        $this->assertAst('<Ast>
+            <Expression offset="0">
+                <T_NUMBER offset="0">2</T_NUMBER>
+                <Operation offset="2">
+                    <T_PLUS offset="2">+</T_PLUS>
+                </Operation>
+                <Expression offset="4">
+                    <T_NUMBER offset="4">2</T_NUMBER>
+                    <Operation offset="6">
+                        <T_MINUS offset="6">-</T_MINUS>
+                    </Operation>
+                    <Expression offset="8">
+                        <T_NUMBER offset="8">10</T_NUMBER>
+                        <Operation offset="11">
+                            <T_PLUS offset="11">+</T_PLUS>
+                        </Operation>
+                        <T_NUMBER offset="13">1000</T_NUMBER>
+                    </Expression>
+                </Expression>
+            </Expression>
+        </Ast>', $ast->first('Expression'));
 
-        $this->assertEquals('<Ast>
-  <Leaf name="T_NUMBER" offset="0">2</Leaf>
-</Ast>', (string)$ast->first('T_NUMBER'));
+        $this->assertAst('<Ast>
+            <T_NUMBER offset="0">2</T_NUMBER>
+        </Ast>', $ast->first('T_NUMBER'));
 
-        $this->assertEquals('<Ast>
-  <Leaf name="T_PLUS" offset="2">+</Leaf>
-</Ast>', (string)$ast->first('T_PLUS'));
+        $this->assertAst('<Ast>
+            <T_PLUS offset="2">+</T_PLUS>
+        </Ast>', $ast->first('T_PLUS'));
 
-        $this->assertEquals('<Ast>
-  <Leaf name="T_MINUS" offset="6">-</Leaf>
-</Ast>', (string)$ast->first('T_MINUS'));
+        $this->assertAst('<Ast>
+            <T_MINUS offset="6">-</T_MINUS>
+        </Ast>', $ast->first('T_MINUS'));
 
         $this->assertEquals('', (string)$ast->first('T_DIV'));
     }

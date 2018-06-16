@@ -11,7 +11,7 @@ namespace Railt\Parser\Runtime;
 
 use Railt\Io\Readable;
 use Railt\Parser\Iterator\BufferInterface;
-use Railt\Parser\Rule\RulesContainerInterface;
+use Railt\Parser\Rule\ProvideRules;
 use Railt\Parser\Rule\Symbol;
 
 /**
@@ -21,10 +21,10 @@ interface RuntimeInterface
 {
     /**
      * RuntimeInterface constructor.
-     * @param RulesContainerInterface $rules
+     * @param ProvideRules $rules
      * @param Symbol $root
      */
-    public function __construct(RulesContainerInterface $rules, Symbol $root);
+    public function __construct(ProvideRules $rules, Symbol $root);
 
     /**
      * @param Readable $input

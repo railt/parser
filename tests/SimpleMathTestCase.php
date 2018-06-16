@@ -25,15 +25,15 @@ class SimpleMathTestCase extends TestCase
 
         $ast = $parser->parse(File::fromSources('2 + 2'));
 
-        $this->assertEquals('<Ast>
-  <Rule name="Expression" offset="0">
-    <Leaf name="T_NUMBER" offset="0">2</Leaf>
-    <Rule name="Operation" offset="2">
-      <Leaf name="T_PLUS" offset="2">+</Leaf>
-    </Rule>
-    <Leaf name="T_NUMBER" offset="4">2</Leaf>
-  </Rule>
-</Ast>', (string)$ast);
+        $this->assertAst('<Ast>
+                <Expression offset="0">
+                    <T_NUMBER offset="0">2</T_NUMBER>
+                    <Operation offset="2">
+                        <T_PLUS offset="2">+</T_PLUS>
+                    </Operation>
+                    <T_NUMBER offset="4">2</T_NUMBER>
+                </Expression>
+            </Ast>', $ast);
     }
 
     /**
@@ -45,26 +45,26 @@ class SimpleMathTestCase extends TestCase
 
         $ast = $parser->parse(File::fromSources('2 + 2 + 10 + 1000'));
 
-        $this->assertEquals('<Ast>
-  <Rule name="Expression" offset="0">
-    <Leaf name="T_NUMBER" offset="0">2</Leaf>
-    <Rule name="Operation" offset="2">
-      <Leaf name="T_PLUS" offset="2">+</Leaf>
-    </Rule>
-    <Rule name="Expression" offset="4">
-      <Leaf name="T_NUMBER" offset="4">2</Leaf>
-      <Rule name="Operation" offset="6">
-        <Leaf name="T_PLUS" offset="6">+</Leaf>
-      </Rule>
-      <Rule name="Expression" offset="8">
-        <Leaf name="T_NUMBER" offset="8">10</Leaf>
-        <Rule name="Operation" offset="11">
-          <Leaf name="T_PLUS" offset="11">+</Leaf>
-        </Rule>
-        <Leaf name="T_NUMBER" offset="13">1000</Leaf>
-      </Rule>
-    </Rule>
-  </Rule>
-</Ast>', (string)$ast);
+        $this->assertAst('<Ast>
+            <Expression offset="0">
+                <T_NUMBER offset="0">2</T_NUMBER>
+                <Operation offset="2">
+                    <T_PLUS offset="2">+</T_PLUS>
+                </Operation>
+                <Expression offset="4">
+                    <T_NUMBER offset="4">2</T_NUMBER>
+                    <Operation offset="6">
+                        <T_PLUS offset="6">+</T_PLUS>
+                    </Operation>
+                    <Expression offset="8">
+                        <T_NUMBER offset="8">10</T_NUMBER>
+                        <Operation offset="11">
+                            <T_PLUS offset="11">+</T_PLUS>
+                        </Operation>
+                        <T_NUMBER offset="13">1000</T_NUMBER>
+                    </Expression>
+                </Expression>
+            </Expression>
+        </Ast>', $ast);
     }
 }

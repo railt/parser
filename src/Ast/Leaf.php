@@ -39,4 +39,12 @@ class Leaf extends Node implements LeafInterface
     {
         return $this->value;
     }
+
+    /**
+     * @return string
+     */
+    public function toString(): string
+    {
+        return $this->getValue();
+    }
 }

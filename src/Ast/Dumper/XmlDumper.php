@@ -54,6 +54,19 @@ class XmlDumper implements NodeDumperInterface
     }
 
     /**
+     * @param NodeInterface $node
+     * @return string
+     */
+    private function getName($node): string
+    {
+        if ($node instanceof NodeInterface) {
+            return $node->getName();
+        }
+
+        return \class_basename($node);
+    }
+
+    /**
      * @return string
      */
     public function toString(): string
@@ -76,18 +89,20 @@ class XmlDumper implements NodeDumperInterface
     private function renderAsXml(\DOMDocument $root, NodeInterface $ast): \DOMElement
     {
         if ($ast instanceof LeafInterface) {
-            $token = $root->createElement(\class_basename($ast), $ast->getValue());
+            $token = $root->createElement($this->getName($ast), $ast->getValue());
             $this->renderAttributes($token, $ast);
 
             return $token;
         }
 
-        $node = $root->createElement(\class_basename($ast));
+        $node = $root->createElement($this->getName($ast));
         $this->renderAttributes($node, $ast);
 
-        /** @var NodeInterface $child */
-        foreach ($ast->getChildren() as $child) {
-            $node->appendChild($this->renderAsXml($root, $child));
+        if ($ast instanceof RuleInterface) {
+            /** @var NodeInterface $child */
+            foreach ($ast->getChildren() as $child) {
+                $node->appendChild($this->renderAsXml($root, $child));
+            }
         }
 
         return $node;

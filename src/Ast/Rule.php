@@ -115,4 +115,18 @@ class Rule extends Node implements RuleInterface
             }
         }
     }
+
+    /**
+     * @return string
+     */
+    public function toString(): string
+    {
+        $result = '';
+
+        foreach ($this->getChildren() as $child) {
+            $result .= $child->toString();
+        }
+
+        return $result;
+    }
 }

@@ -18,7 +18,7 @@ use Railt\Parser\Rule\Alternation;
 use Railt\Parser\Rule\Concatenation;
 use Railt\Parser\Rule\Production;
 use Railt\Parser\Rule\Repetition;
-use Railt\Parser\Rule\RulesContainerInterface;
+use Railt\Parser\Rule\ProvideRules;
 use Railt\Parser\Rule\Symbol;
 use Railt\Parser\Rule\Token;
 use Railt\Parser\Runtime\Trace\Entry;
@@ -45,7 +45,7 @@ class LlkRuntime implements RuntimeInterface
     private $depth = -1;
 
     /**
-     * @var RulesContainerInterface
+     * @var ProvideRules
      */
     private $rules;
 
@@ -61,10 +61,10 @@ class LlkRuntime implements RuntimeInterface
 
     /**
      * LlkRuntime constructor.
-     * @param RulesContainerInterface $rules
+     * @param ProvideRules $rules
      * @param Symbol $root
      */
-    public function __construct(RulesContainerInterface $rules, Symbol $root)
+    public function __construct(ProvideRules $rules, Symbol $root)
     {
         $this->rules = $rules;
         $this->root  = $root;

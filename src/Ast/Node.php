@@ -19,7 +19,7 @@ abstract class Node implements NodeInterface
     /**
      * @var string
      */
-    protected $name;
+    private $name;
 
     /**
      * @var int

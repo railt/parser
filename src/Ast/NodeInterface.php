@@ -28,4 +28,9 @@ interface NodeInterface
      * @return string
      */
     public function __toString(): string;
+
+    /**
+     * @return string
+     */
+    public function toString(): string;
 }

@@ -12,6 +12,7 @@ namespace Railt\Tests\Parser;
 use PHPUnit\Framework\TestCase as BaseTestCase;
 use Railt\Lexer\Driver\NativeStateless;
 use Railt\Lexer\LexerInterface;
+use Railt\Parser\Ast\NodeInterface;
 use Railt\Parser\Parser;
 use Railt\Parser\ParserInterface;
 use Railt\Parser\Rule\Alternation;
@@ -68,5 +69,22 @@ abstract class TestCase extends BaseTestCase
         $lexer->add('T_GROUP_CLOSE', '\\)');
 
         return $lexer;
+    }
+
+    /**
+     * @param string $expected
+     * @param NodeInterface|null $actual
+     * @throws \PHPUnit\Framework\Exception
+     * @throws \PHPUnit\Framework\ExpectationFailedException
+     */
+    protected function assertAst(string $expected, ?NodeInterface $actual): void
+    {
+        $toArray = function(string $code): array {
+            $parts = \explode("\n", \str_replace("\r", '', $code));
+
+            return \array_map('\\trim', $parts);
+        };
+
+        $this->assertEquals($toArray($expected), $toArray((string)$actual));
     }
 }

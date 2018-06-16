@@ -25,12 +25,19 @@ class Builder
     private $trace;
 
     /**
+     * @var array
+     */
+    private $delegates;
+
+    /**
      * Builder constructor.
      * @param iterable $trace
+     * @param array $delegates
      */
-    public function __construct(iterable $trace)
+    public function __construct(iterable $trace, array $delegates = [])
     {
         $this->trace = \is_array($trace) ? new \ArrayIterator($trace) : $trace;
+        $this->delegates = $delegates;
     }
 
     /**
@@ -93,7 +100,8 @@ class Builder
     private function rule(Entry $entry, \Iterator $children): RuleInterface
     {
         $name = \ltrim($entry->getName(), '#');
+        $class = $this->delegates[$entry->getName()] ?? AstRule::class;
 
-        return new AstRule($name, \iterator_to_array($children), $entry->getOffset());
+        return new $class($name, \iterator_to_array($children), $entry->getOffset());
     }
 }

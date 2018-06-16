@@ -14,24 +14,25 @@ use Railt\Lexer\LexerInterface;
 use Railt\Lexer\Result\Unknown;
 use Railt\Lexer\TokenInterface;
 use Railt\Parser\Ast\Builder;
+use Railt\Parser\Ast\Delegate;
 use Railt\Parser\Ast\RuleInterface;
 use Railt\Parser\Exception\UnrecognizedRuleException;
 use Railt\Parser\Exception\UnrecognizedTokenException;
 use Railt\Parser\Iterator\Buffer;
 use Railt\Parser\Iterator\BufferInterface;
 use Railt\Parser\Rule\Production;
-use Railt\Parser\Rule\RulesContainerInterface;
+use Railt\Parser\Rule\ProvideRules;
 use Railt\Parser\Rule\Symbol;
 use Railt\Parser\Runtime\RuntimeInterface;
 
 /**
  * Class Parser
  */
-class Parser implements ParserInterface, RulesContainerInterface
+class Parser implements ParserInterface, ProvideRules
 {
     public const PRAGMA_LOOKAHEAD = 'parser.lookahead';
-    public const PRAGMA_ROOT      = 'parser.root';
-    public const PRAGMA_RUNTIME   = 'parser.runtime';
+    public const PRAGMA_ROOT = 'parser.root';
+    public const PRAGMA_RUNTIME = 'parser.runtime';
 
     /**
      * @var array|Symbol[]
@@ -51,6 +52,11 @@ class Parser implements ParserInterface, RulesContainerInterface
     /**
      * @var array|string[]
      */
+    private $delegates = [];
+
+    /**
+     * @var array|string[]
+     */
     private $runtime = [
         'llk' => Runtime\LlkRuntime::class,
         'll1' => Runtime\Ll1Runtime::class,
@@ -62,23 +68,69 @@ class Parser implements ParserInterface, RulesContainerInterface
      * @param iterable $rules
      * @param array $config
      */
-    public function __construct(LexerInterface $lexer, iterable $rules = [], array $config = [])
+    public function __construct(LexerInterface $lexer, iterable $rules, array $config = [])
     {
         $this->lexer  = $lexer;
         $this->config = new Configuration($config);
+        $this->addRules($rules);
+    }
 
-        foreach ($rules as $rule) {
-            $this->add($rule);
+    /**
+     * @param string $from
+     * @param string|Delegate $to
+     * @return ParserInterface
+     * @throws \InvalidArgumentException
+     */
+    public function addDelegate(string $from, string $to): ParserInterface
+    {
+        if (! \class_exists($to)) {
+            throw new \InvalidArgumentException('Delegate should be a valid class name');
         }
+
+        if (! \is_subclass_of($to, Delegate::class)) {
+            $error = \sprintf('Delegate should be an instance of %s', Delegate::class);
+            throw new \InvalidArgumentException($error);
+        }
+
+        $this->delegates[$from] = $to;
+
+        return $this;
+    }
+
+    /**
+     * @param iterable|string[]|Delegate[] $delegates
+     * @return ParserInterface
+     * @throws \InvalidArgumentException
+     */
+    public function addDelegates(iterable $delegates): ParserInterface
+    {
+        foreach ($delegates as $rule => $delegate) {
+            $this->addDelegate($rule, $delegate);
+        }
+
+        return $this;
     }
 
     /**
      * @param Symbol $symbol
-     * @return RulesContainerInterface
+     * @return ProvideRules
      */
-    public function add(Symbol $symbol): RulesContainerInterface
+    public function addRule(Symbol $symbol): ProvideRules
     {
         $this->rules[$symbol->getId()] = $symbol;
+
+        return $this;
+    }
+
+    /**
+     * @param iterable $symbols
+     * @return ProvideRules
+     */
+    public function addRules(iterable $symbols): ProvideRules
+    {
+        foreach ($symbols as $symbol) {
+            $this->addRule($symbol);
+        }
 
         return $this;
     }
@@ -97,7 +149,7 @@ class Parser implements ParserInterface, RulesContainerInterface
 
         $trace = $this->createRuntime()->parse($input, $buffer);
 
-        return (new Builder($trace))->reduce();
+        return (new Builder($trace, $this->delegates))->reduce();
     }
 
     /**

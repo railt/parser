@@ -10,16 +10,10 @@ declare(strict_types=1);
 namespace Railt\Parser\Rule;
 
 /**
- * Interface RulesContainerInterface
+ * Interface ProvideRules
  */
-interface RulesContainerInterface
+interface ProvideRules
 {
-    /**
-     * @param Symbol $symbol
-     * @return RulesContainerInterface
-     */
-    public function add(Symbol $symbol): RulesContainerInterface;
-
     /**
      * @param string|int $id
      * @return Symbol
