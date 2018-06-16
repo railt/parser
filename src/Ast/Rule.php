@@ -33,6 +33,15 @@ class Rule extends Node implements RuleInterface
     }
 
     /**
+     * @param int $index
+     * @return null|NodeInterface
+     */
+    public function getChild(int $index): ?NodeInterface
+    {
+        return $this->getChildren()[$index] ?? null;
+    }
+
+    /**
      * @return iterable|NodeInterface[]
      */
     public function getChildren(): iterable
@@ -42,15 +51,6 @@ class Rule extends Node implements RuleInterface
         }
 
         return $this->children;
-    }
-
-    /**
-     * @param int $index
-     * @return null|NodeInterface
-     */
-    public function getChild(int $index): ?NodeInterface
-    {
-        return $this->getChildren()[$index] ?? null;
     }
 
     /**
@@ -72,31 +72,47 @@ class Rule extends Node implements RuleInterface
     /**
      * @param string $name
      * @param int|null $depth
+     * @return null|NodeInterface
+     */
+    public function first(string $name, int $depth = null): ?NodeInterface
+    {
+        return $this->find($name, $depth)->current();
+    }
+
+    /**
+     * @param string $name
+     * @param int|null $depth
      * @return iterable
      */
     public function find(string $name, int $depth = null): iterable
     {
         $depth = \max(0, $depth ?? \PHP_INT_MAX);
 
-        foreach ($this->getChildren() as $child) {
-            if ($child->getName() === $name) {
-                yield $child;
-                continue;
-            }
+        if ($this->getName() === $name) {
+            yield $this;
+        }
 
-            if ($depth > 0 && $child instanceof RuleInterface) {
-                yield from $child->find($name, $depth - 1);
-            }
+        if ($depth > 0) {
+            yield from $this->findChildren($this, $name, $depth);
         }
     }
 
     /**
+     * @param RuleInterface $rule
      * @param string $name
-     * @param int|null $depth
-     * @return null|NodeInterface
+     * @param int $depth
+     * @return iterable
      */
-    public function first(string $name, int $depth = null): ?NodeInterface
+    protected function findChildren(RuleInterface $rule, string $name, int $depth): iterable
     {
-        return $this->find($name, $depth)->current();
+        foreach ($rule->getChildren() as $child) {
+            if ($child->getName() === $name) {
+                yield $child;
+            }
+
+            if ($depth > 1 && $child instanceof RuleInterface) {
+                yield from $this->findChildren($child, $name, $depth - 1);
+            }
+        }
     }
 }
