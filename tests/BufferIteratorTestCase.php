@@ -20,6 +20,7 @@ class BufferIteratorTestCase extends TestCase
      * @return void
      * @throws \PHPUnit\Framework\ExpectationFailedException
      * @throws \SebastianBergmann\RecursionContext\InvalidArgumentException
+     * @throws \PHPUnit\Framework\Exception
      */
     public function testIterable(): void
     {
