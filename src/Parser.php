@@ -30,10 +30,6 @@ use Railt\Parser\Runtime\RuntimeInterface;
  */
 class Parser implements ParserInterface, ProvideRules
 {
-    public const PRAGMA_LOOKAHEAD = 'parser.lookahead';
-    public const PRAGMA_ROOT = 'parser.root';
-    public const PRAGMA_RUNTIME = 'parser.runtime';
-
     /**
      * @var array|Symbol[]
      */
@@ -159,7 +155,7 @@ class Parser implements ParserInterface, ProvideRules
      */
     protected function createBuffer(Readable $input): BufferInterface
     {
-        $lookahead = (int)$this->config->get(static::PRAGMA_LOOKAHEAD, 1024);
+        $lookahead = (int)$this->config->get(Configuration::PRAGMA_LOOKAHEAD, 1024);
 
         return new Buffer($this->lex($input), $lookahead);
     }
@@ -189,7 +185,7 @@ class Parser implements ParserInterface, ProvideRules
      */
     protected function createRuntime(): RuntimeInterface
     {
-        $key     = $this->config->get(static::PRAGMA_RUNTIME, \array_keys($this->runtime)[0]);
+        $key     = $this->config->get(Configuration::PRAGMA_RUNTIME, \array_keys($this->runtime)[0]);
         $runtime = $this->runtime[$key] ?? \array_values($this->runtime)[0];
 
         return new $runtime($this, $this->getRootRule());
@@ -201,7 +197,7 @@ class Parser implements ParserInterface, ProvideRules
      */
     protected function getRootRule(): Production
     {
-        $name = $this->config->get(static::PRAGMA_ROOT);
+        $name = $this->config->get(Configuration::PRAGMA_ROOT);
 
         foreach ($this->rules as $rule) {
             if ($rule instanceof Production && $rule->getName()) {

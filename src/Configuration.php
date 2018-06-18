@@ -14,6 +14,10 @@ namespace Railt\Parser;
  */
 class Configuration
 {
+    public const PRAGMA_ROOT = 'root';
+    public const PRAGMA_RUNTIME = 'runtime';
+    public const PRAGMA_LOOKAHEAD = 'lookahead';
+
     /**
      * @var array
      */

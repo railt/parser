@@ -13,6 +13,7 @@ use PHPUnit\Framework\TestCase as BaseTestCase;
 use Railt\Lexer\Driver\NativeStateless;
 use Railt\Lexer\LexerInterface;
 use Railt\Parser\Ast\NodeInterface;
+use Railt\Parser\Configuration;
 use Railt\Parser\Parser;
 use Railt\Parser\ParserInterface;
 use Railt\Parser\Rule\Alternation;
@@ -50,7 +51,7 @@ abstract class TestCase extends BaseTestCase
             new Token(2, 'T_MINUS', true),
             new Token(3, 'T_POW', true),
             new Token(4, 'T_DIV', true),
-        ], [Parser::PRAGMA_ROOT => 'Expression']);
+        ], [Configuration::PRAGMA_ROOT => 'Expression']);
     }
 
     /**
