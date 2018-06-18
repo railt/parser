@@ -56,13 +56,13 @@ and definitions of the tokens.
 ```php
 //
 // This (e)BNF construction:
-// expr = T_NUMBER T_PLUS T_NUMBER ;
+// expression = T_NUMBER T_PLUS T_NUMBER ;
 // 
 // Looks like:
 // Concatenation1 = Token1 Token2 Token1
 //
 $parser = new Railt\Parser\Parser($lexer, [
-    new Railt\Parser\Rule\Concatenation(0, [1, 2, 1], 'expr'),
+    new Railt\Parser\Rule\Concatenation(0, [1, 2, 1], 'expression'),
     new Railt\Parser\Rule\Token(1, 'T_NUMBER'),
     new Railt\Parser\Rule\Token(2, 'T_PLUS'),
 ]);
@@ -77,11 +77,11 @@ echo $parser->parse(Railt\Io\File::fromSources('2 + 2'));
 Will outputs:
 ```xml
 <Ast>
-    <Rule name="expr" offset="0">
-        <Leaf name="T_NUMBER" offset="0">2</Leaf>
-        <Leaf name="T_PLUS" offset="2">+</Leaf>
-        <Leaf name="T_NUMBER" offset="4">2</Leaf>
-    </Rule>
+    <expression offset="0">
+        <T_NUMBER offset="0">2</T_NUMBER>
+        <T_PLUS offset="2">+</T_PLUS>
+        <T_NUMBER offset="4">2</T_NUMBER>
+    </expression>
 </Ast>
 ```
 
@@ -171,24 +171,102 @@ Result:
 
 ```xml
 <Ast>
-  <Rule name="expression" offset="0">
-    <Leaf name="T_NUMBER" offset="0">2</Leaf>
-    <Rule name="operation" offset="2">
-      <Leaf name="T_PLUS" offset="2">+</Leaf>
-    </Rule>
-    <Rule name="expression" offset="4">
-      <Leaf name="T_NUMBER" offset="4">2</Leaf>
-      <Rule name="operation" offset="6">
-        <Leaf name="T_MINUS" offset="6">-</Leaf>
-      </Rule>
-      <Rule name="expression" offset="8">
-        <Leaf name="T_NUMBER" offset="8">10</Leaf>
-        <Rule name="operation" offset="11">
-          <Leaf name="T_PLUS" offset="11">+</Leaf>
-        </Rule>
-        <Leaf name="T_NUMBER" offset="13">1000</Leaf>
-      </Rule>
-    </Rule>
-  </Rule>
+  <expression offset="0">
+    <T_NUMBER offset="0">2</T_NUMBER>
+    <operation offset="2">
+      <T_PLUS offset="2">+</T_PLUS>
+    </operation>
+    <expression offset="4">
+      <T_NUMBER offset="4">2</T_NUMBER>
+      <operation offset="6">
+        <T_MINUS offset="6">-</T_MINUS>
+      </operation>
+      <expression offset="8">
+        <T_NUMBER offset="8">10</T_NUMBER>
+        <operation offset="11">
+          <T_PLUS offset="11">+</T_PLUS>
+        </operation>
+        <T_NUMBER offset="13">1000</T_NUMBER>
+      </expression>
+    </expression>
+  </expression>
 </Ast>
 ```
+
+## Abstract Syntax Tree
+
+An abstract syntax tree provides a set of classes 
+that can be represented in one of two ways:
+
+- `Leaf` - Terminal structures, which are represented inside the grammar as tokens.
+- `Rule` - Non-terminal structures that are part of the production of grammar.
+
+In the form of interfaces, these classes look like this:
+
+```php
+interface NodeInterface 
+{
+    public function getName(): string;
+    public function getOffset(): int;
+    public function __toString(): string;
+}
+
+interface RuleInterface extends NodeInterface
+{
+    public function getChildren(): iterable;
+    public function getChild(int $index): ?NodeInterface;
+}
+
+interface LeafInterface extends NodeInterface
+{
+    public function getValue(): string;
+}
+```
+
+The name and location offset (in bytes) are part of their 
+common capabilities. However, terminals have the ability to retrieve 
+values, and non-terminal contain descendants.
+
+As you can see, each node has the `__toString` method, so the **XML** string
+of these rules is just a representation of their internal structure.
+
+## Delegate
+
+Each **Rule** can be represented as its own structure, different from the 
+standard. To do this, you only need to define in the 
+parser when to delegate this authority.
+
+```php
+// operation = T_PLUS | T_MINUS ;
+
+class Operation extends Rule 
+{
+    public function isMinus(): bool 
+    {
+        return $this->getChild(0)->getName() === 'T_MINUS';
+    }
+    
+    public function isPlus(): bool 
+    {
+        return $this->getChild(0)->getName() === 'T_PLUS';
+    }
+}
+
+$parser->addDelegate('operation', Operation::class);
+
+echo $parser->parse('2 + 2');
+```
+
+```xml
+<Ast>
+  <expression offset="0">
+    <T_NUMBER offset="0">2</T_NUMBER>
+    <operation offset="2">
+      <T_PLUS offset="2">+</T_PLUS>
+    </operation>
+    <T_NUMBER offset="4">2</T_NUMBER>
+  </expression>
+</Ast>
+```
+
+Each **operation** rule will be an instance of `Operation` class.
