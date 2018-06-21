@@ -25,7 +25,7 @@ abstract class Invocation implements TraceInterface
     /**
      * @var int
      */
-    protected $data;
+    protected $next;
 
     /**
      * @var array
@@ -35,26 +35,19 @@ abstract class Invocation implements TraceInterface
     /**
      * @var int
      */
-    protected $depth = -1;
-
-    /**
-     * @var int
-     */
     private $offset = 0;
 
     /**
      * Invocation constructor.
      * @param Symbol $rule
-     * @param int $data
+     * @param int $next
      * @param array|null $then
-     * @param int $depth
      */
-    public function __construct(Symbol $rule, int $data = 0, array $then = null, int $depth = -1)
+    public function __construct(Symbol $rule, int $next = 0, array $then = null)
     {
         $this->rule  = $rule;
-        $this->data  = $data;
+        $this->next  = $next;
         $this->todo  = $then;
-        $this->depth = $depth;
     }
 
     /**
@@ -99,9 +92,9 @@ abstract class Invocation implements TraceInterface
     /**
      * @return int
      */
-    public function getData(): int
+    public function getNext(): int
     {
-        return $this->data;
+        return $this->next;
     }
 
     /**
@@ -110,25 +103,6 @@ abstract class Invocation implements TraceInterface
     public function getTodo(): array
     {
         return $this->todo;
-    }
-
-    /**
-     * @return int
-     */
-    public function getDepth(): int
-    {
-        return $this->depth;
-    }
-
-    /**
-     * @param int $depth
-     * @return Invocation
-     */
-    public function setDepth(int $depth): self
-    {
-        $this->depth = $depth;
-
-        return $this;
     }
 
     /**

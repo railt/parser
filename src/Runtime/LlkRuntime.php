@@ -38,13 +38,6 @@ class LlkRuntime implements RuntimeInterface
     private $todo;
 
     /**
-     * Current depth while building the trace.
-     *
-     * @var int
-     */
-    private $depth = -1;
-
-    /**
      * @var ProvideRules
      */
     private $rules;
@@ -88,11 +81,11 @@ class LlkRuntime implements RuntimeInterface
             if ($this->backtrack($buffer) === false) {
                 $this->throwUnexpectedToken($input, $buffer);
             }
-
-            yield from $this->reduce();
         }
 
-        yield from $this->reduce();
+        yield from $this->trace;
+
+        $this->reset();
     }
 
     /**
@@ -103,7 +96,6 @@ class LlkRuntime implements RuntimeInterface
         $close = new Escape($this->root);
         $entry = new Entry($this->root, 0, [$close]);
 
-        $this->depth = -1;
         $this->trace = [];
         $this->todo  = [$close, $entry];
     }
@@ -137,14 +129,9 @@ class LlkRuntime implements RuntimeInterface
             $rule = \array_pop($this->todo);
 
             if ($rule instanceof Escape) {
-                $rule->setDepth($this->depth);
                 $this->rule($rule, $buffer);
-
-                if (! $rule->isKept()) {
-                    --$this->depth;
-                }
             } else {
-                $out = $this->parseCurrentRule($buffer, $this->fetch($rule->getRuleId()), $rule->getData());
+                $out = $this->parseCurrentRule($buffer, $this->rules->fetch($rule->getRuleId()), $rule->getNext());
 
                 if ($out === false && $this->backtrack($buffer) === false) {
                     return false;
@@ -173,7 +160,7 @@ class LlkRuntime implements RuntimeInterface
      * @param int $next Next rule index.
      * @return bool
      */
-    protected function parseCurrentRule(BufferInterface $buffer, Symbol $rule, $next): bool
+    protected function parseCurrentRule(BufferInterface $buffer, Symbol $rule, int $next): bool
     {
         if (! $buffer->current()) {
             return false;
@@ -237,24 +224,15 @@ class LlkRuntime implements RuntimeInterface
      */
     private function parseConcatenation(BufferInterface $buffer, Concatenation $concat): bool
     {
-        $this->rule(new Entry($concat, 0, null, $this->depth), $buffer);
+        $this->rule(new Entry($concat, 0), $buffer);
         $children = $concat->then();
 
         for ($i = \count($children) - 1; $i >= 0; --$i) {
-            $this->todo[] = new Escape($this->fetch($children[$i]));
-            $this->todo[] = new Entry($this->fetch($children[$i]));
+            $this->todo[] = new Escape($this->rules->fetch($children[$i]));
+            $this->todo[] = new Entry($this->rules->fetch($children[$i]));
         }
 
         return true;
-    }
-
-    /**
-     * @param int $id
-     * @return null|Symbol|Production
-     */
-    private function fetch(int $id): ?Symbol
-    {
-        return $this->rules->fetch($id);
     }
 
     /**
@@ -271,10 +249,10 @@ class LlkRuntime implements RuntimeInterface
             return false;
         }
 
-        $this->rule(new Entry($choice, $next, $this->todo, $this->depth), $buffer);
+        $this->rule(new Entry($choice, $next, $this->todo), $buffer);
 
-        $this->todo[] = new Escape($this->fetch($children[$next]));
-        $this->todo[] = new Entry($this->fetch($children[$next]));
+        $this->todo[] = new Escape($this->rules->fetch($children[$next]));
+        $this->todo[] = new Entry($this->rules->fetch($children[$next]));
 
         return true;
     }
@@ -292,13 +270,13 @@ class LlkRuntime implements RuntimeInterface
         if ($next === 0) {
             $min = $repeat->from();
 
-            $this->rule(new Entry($repeat, $min, null, $this->depth), $buffer);
+            $this->rule(new Entry($repeat, $min, null), $buffer);
             \array_pop($this->todo);
             $this->todo[] = new Escape($repeat, $min, $this->todo);
 
             for ($i = 0; $i < $min; ++$i) {
-                $this->todo[] = new Escape($this->fetch($nextRule));
-                $this->todo[] = new Entry($this->fetch($nextRule));
+                $this->todo[] = new Escape($this->rules->fetch($nextRule));
+                $this->todo[] = new Entry($this->rules->fetch($nextRule));
             }
 
             return true;
@@ -311,9 +289,8 @@ class LlkRuntime implements RuntimeInterface
         }
 
         $this->todo[] = new Escape($repeat, $next, $this->todo);
-
-        $this->todo[] = new Escape($this->fetch($nextRule));
-        $this->todo[] = new Entry($this->fetch($nextRule));
+        $this->todo[] = new Escape($this->rules->fetch($nextRule));
+        $this->todo[] = new Entry($this->rules->fetch($nextRule));
 
         return true;
     }
@@ -332,9 +309,9 @@ class LlkRuntime implements RuntimeInterface
             $last = \array_pop($this->trace);
 
             if ($last instanceof Entry) {
-                $found = $this->fetch($last->getRuleId()) instanceof Alternation;
+                $found = $this->rules->fetch($last->getRuleId()) instanceof Alternation;
             } elseif ($last instanceof Escape) {
-                $found = $this->fetch($last->getRuleId()) instanceof Repetition;
+                $found = $this->rules->fetch($last->getRuleId()) instanceof Repetition;
             } elseif ($last instanceof TokenTrace) {
                 $buffer->previous();
 
@@ -348,9 +325,8 @@ class LlkRuntime implements RuntimeInterface
             return false;
         }
 
-        $this->depth  = $last->getDepth();
         $this->todo   = $last->getTodo();
-        $this->todo[] = new Entry($this->fetch($last->getRuleId()), $last->getData() + 1);
+        $this->todo[] = new Entry($this->rules->fetch($last->getRuleId()), $last->getNext() + 1);
 
         return true;
     }
@@ -372,15 +348,5 @@ class LlkRuntime implements RuntimeInterface
             : \sprintf('Unexpected token "%s" (%s)', $value, $name);
 
         throw (new UnexpectedTokenException($error))->throwsIn($input, $token->offset());
-    }
-
-    /**
-     * @return \Traversable|TraceInterface[]
-     */
-    private function reduce(): \Traversable
-    {
-        yield from $this->trace;
-
-        $this->trace = [];
     }
 }
