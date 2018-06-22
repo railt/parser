@@ -254,7 +254,11 @@ class Operation extends Rule
 
 $parser->addDelegate('operation', Operation::class);
 
-echo $parser->parse('2 + 2');
+$ast = $parser->parse('2 + 2');
+echo $ast;
+
+$ast->first('operation')->isPlus(); // true
+$ast->first('operation')->isMinus(); // false
 ```
 
 ```xml
