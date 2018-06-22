@@ -54,19 +54,6 @@ class XmlDumper implements NodeDumperInterface
     }
 
     /**
-     * @param NodeInterface $node
-     * @return string
-     */
-    private function getName($node): string
-    {
-        if ($node instanceof NodeInterface) {
-            return $node->getName();
-        }
-
-        return \class_basename($node);
-    }
-
-    /**
      * @return string
      */
     public function toString(): string
@@ -89,13 +76,13 @@ class XmlDumper implements NodeDumperInterface
     private function renderAsXml(\DOMDocument $root, NodeInterface $ast): \DOMElement
     {
         if ($ast instanceof LeafInterface) {
-            $token = $root->createElement($this->getName($ast), $ast->getValue());
+            $token = $this->createElement($root, $this->getName($ast), $ast->getValue());
             $this->renderAttributes($token, $ast);
 
             return $token;
         }
 
-        $node = $root->createElement($this->getName($ast));
+        $node = $this->createElement($root, $this->getName($ast));
         $this->renderAttributes($node, $ast);
 
         if ($ast instanceof RuleInterface) {
@@ -106,6 +93,49 @@ class XmlDumper implements NodeDumperInterface
         }
 
         return $node;
+    }
+
+    /**
+     * @param \DOMDocument $root
+     * @param string $name
+     * @param string|null $value
+     * @return \DOMElement
+     */
+    private function createElement(\DOMDocument $root, string $name, string $value = null): \DOMElement
+    {
+        switch (true) {
+            case $value === null:
+                return $root->createElement($name);
+                
+
+            case $value === $this->escape($value):
+                return $root->createElement($name, $value);
+                
+            default:
+                $result = $root->createElement($name);
+                $result->appendChild($root->createCDATASection($value));
+                return $result;
+        }
+    }
+
+    /**
+     * @param NodeInterface $node
+     * @return string
+     */
+    private function getName($node): string
+    {
+        return $this->escape(
+            $node instanceof NodeInterface ? $node->getName() : \class_basename($node)
+        );
+    }
+
+    /**
+     * @param string $value
+     * @return string
+     */
+    private function escape(string $value): string
+    {
+        return \htmlspecialchars($value);
     }
 
     /**

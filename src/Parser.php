@@ -133,19 +133,20 @@ class Parser implements ParserInterface, ProvideRules
 
     /**
      * @param Readable $input
+     * @param Environment|null $env
      * @return RuleInterface
      * @throws UnrecognizedRuleException
      * @throws \LogicException
      * @throws \Railt\Io\Exception\ExternalFileException
      */
-    public function parse(Readable $input): RuleInterface
+    public function parse(Readable $input, Environment $env = null): RuleInterface
     {
         $buffer = $this->createBuffer($input);
         $buffer->rewind();
 
         $trace = $this->createRuntime()->parse($input, $buffer);
 
-        return (new Builder($trace, $this->delegates))->reduce();
+        return (new Builder($trace, $this->delegates, $env))->reduce();
     }
 
     /**
@@ -180,10 +181,11 @@ class Parser implements ParserInterface, ProvideRules
     }
 
     /**
+     * @param Environment|null $env
      * @return RuntimeInterface
      * @throws UnrecognizedRuleException
      */
-    protected function createRuntime(): RuntimeInterface
+    protected function createRuntime(Environment $env = null): RuntimeInterface
     {
         $key     = $this->config->get(Configuration::PRAGMA_RUNTIME, \array_keys($this->runtime)[0]);
         $runtime = $this->runtime[$key] ?? \array_values($this->runtime)[0];

@@ -9,6 +9,8 @@ declare(strict_types=1);
 
 namespace Railt\Parser\Ast;
 
+use Railt\Parser\Environment;
+
 /**
  * Class Rule
  */
@@ -20,16 +22,33 @@ class Rule extends Node implements RuleInterface
     private $children;
 
     /**
+     * @var Environment
+     */
+    private $env;
+
+    /**
      * Rule constructor.
+     * @param Environment $env
      * @param string $name
-     * @param iterable $children
+     * @param array $children
      * @param int $offset
      */
-    public function __construct(string $name, iterable $children = [], int $offset = 0)
+    public function __construct(Environment $env, string $name, array $children = [], int $offset = 0)
     {
         parent::__construct($name, $offset);
 
         $this->children = $children;
+        $this->env = $env;
+    }
+
+    /**
+     * @param string $variable
+     * @param mixed|null $default
+     * @return mixed
+     */
+    protected function env(string $variable, $default = null)
+    {
+        return $this->env->get($variable, $default);
     }
 
     /**
@@ -46,10 +65,6 @@ class Rule extends Node implements RuleInterface
      */
     public function getChildren(): iterable
     {
-        if ($this->children instanceof \Traversable) {
-            $this->children = \iterator_to_array($this->children);
-        }
-
         return $this->children;
     }
 

@@ -19,7 +19,8 @@ interface ParserInterface
 {
     /**
      * @param Readable $input
-     * @return \Traversable|RuleInterface
+     * @param Environment|null $env
+     * @return RuleInterface
      */
-    public function parse(Readable $input): RuleInterface;
+    public function parse(Readable $input, Environment $env = null): RuleInterface;
 }
