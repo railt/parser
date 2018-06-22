@@ -270,3 +270,24 @@ echo $parser->parse('2 + 2');
 ```
 
 Each **operation** rule will be an instance of `Operation` class.
+
+## Benchmarks
+
+## Benchmarks
+
+- PHP 7.1 (x64 NTS)
+    - XDebug: **disabled**
+    - Opcache: **disabled**
+- Intel i7 6700k
+- 16Gb DDR4
+
+[![./resources/public/bench.png](./resources/public/bench.png)](./resources/public/bench.png)
+
+**Legend:**
+
+- Y Axis: Number of AST rules that can be processed per second.
+- X Axis: The total number of rules (and the amount of source code that is processed, including).
+
+- Red: The Railt **Railt LL(k)** parser version 1.2
+- Green: The original **Hoa LL(k)** parser version 3.17.08.08
+
