@@ -9,16 +9,19 @@ declare(strict_types=1);
 
 namespace Railt\Parser\Ast;
 
+use Railt\Parser\Environment;
+
 /**
  * Interface RuleDelegate
  */
 interface Delegate
 {
     /**
-     * RuleInterface constructor.
+     * Delegate constructor.
+     * @param Environment $env
      * @param string $name
-     * @param iterable $children
+     * @param array $children
      * @param int $offset
      */
-    public function __construct(string $name, iterable $children = [], int $offset = 0);
+    public function __construct(Environment $env, string $name, array $children = [], int $offset = 0);
 }
