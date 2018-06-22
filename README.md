@@ -162,7 +162,7 @@ $parser = new Parser($lexer, [
     new Token(8, 'T_NUMBER'),
     new Token(1, 'T_PLUS'),
     new Token(2, 'T_MINUS'),
-], [Parser::PRAGMA_ROOT => 'expression']);
+], [Configuration::PRAGMA_ROOT => 'expression']);
 
 echo $parser->parse(File::fromSources('2 + 2 - 10 + 1000'));
 ```
