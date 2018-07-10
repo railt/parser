@@ -62,9 +62,17 @@ abstract class AbstractParser implements ParserInterface
     /**
      * @return GrammarInterface
      */
-    public function grammar(): GrammarInterface
+    public function getGrammar(): GrammarInterface
     {
         return $this->grammar;
+    }
+
+    /**
+     * @return LexerInterface
+     */
+    public function getLexer(): LexerInterface
+    {
+        return $this->lexer;
     }
 
     /**

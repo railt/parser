@@ -36,22 +36,22 @@ class Grammar implements GrammarInterface
     /**
      * Grammar constructor.
      * @param array|Rule[] $rules
-     * @param array $delegates
+     * @param array|string[]|Delegate[] $delegates
      * @param string|int|null $root
      * @throws GrammarException
      */
     public function __construct(array $rules, $root = null, array $delegates = [])
     {
-        $this->addRules(...\array_values($rules));
+        $this->addRules(\array_values($rules));
         $this->delegates = $delegates;
         $this->root      = $root ?? $this->resolveRootRule();
     }
 
     /**
-     * @param Rule ...$rules
+     * @param Rule[] $rules
      * @return $this|GrammarInterface
      */
-    public function addRules(Rule ...$rules): GrammarInterface
+    public function addRules(array $rules): GrammarInterface
     {
         foreach ($rules as $rule) {
             $this->rules[$rule->getName()] = $rule;

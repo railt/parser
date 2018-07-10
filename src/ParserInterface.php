@@ -10,6 +10,7 @@ declare(strict_types=1);
 namespace Railt\Parser;
 
 use Railt\Io\Readable;
+use Railt\Lexer\LexerInterface;
 use Railt\Parser\Ast\RuleInterface;
 
 /**
@@ -25,7 +26,12 @@ interface ParserInterface
     /**
      * @return GrammarInterface
      */
-    public function grammar(): GrammarInterface;
+    public function getGrammar(): GrammarInterface;
+
+    /**
+     * @return LexerInterface
+     */
+    public function getLexer(): LexerInterface;
 
     /**
      * @param Readable $input
