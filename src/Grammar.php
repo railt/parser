@@ -21,7 +21,7 @@ class Grammar implements GrammarInterface
     /**
      * @var array|Rule[]
      */
-    private $rules;
+    private $rules = [];
 
     /**
      * @var string|int
@@ -31,7 +31,7 @@ class Grammar implements GrammarInterface
     /**
      * @var array|string[]|Delegate[]
      */
-    private $delegates;
+    private $delegates = [];
 
     /**
      * Grammar constructor.
@@ -43,18 +43,42 @@ class Grammar implements GrammarInterface
     public function __construct(array $rules, $root = null, array $delegates = [])
     {
         $this->addRules(\array_values($rules));
-        $this->delegates = $delegates;
-        $this->root      = $root ?? $this->resolveRootRule();
+        $this->addDelegates($delegates);
+        $this->root = $root ?? $this->resolveRootRule();
     }
 
     /**
      * @param Rule[] $rules
-     * @return $this|GrammarInterface
+     * @return GrammarInterface|$this
      */
     public function addRules(array $rules): GrammarInterface
     {
         foreach ($rules as $rule) {
-            $this->rules[$rule->getName()] = $rule;
+            $this->addRule($rule);
+        }
+
+        return $this;
+    }
+
+    /**
+     * @param Rule $rule
+     * @return GrammarInterface|$this
+     */
+    public function addRule(Rule $rule): GrammarInterface
+    {
+        $this->rules[$rule->getName()] = $rule;
+
+        return $this;
+    }
+
+    /**
+     * @param array $delegates
+     * @return GrammarInterface|$this
+     */
+    public function addDelegates(array $delegates): GrammarInterface
+    {
+        foreach ($delegates as $rule => $delegate) {
+            $this->delegates[$rule] = $delegate;
         }
 
         return $this;
@@ -102,14 +126,13 @@ class Grammar implements GrammarInterface
     }
 
     /**
-     * @param array $delegates
-     * @return $this|GrammarInterface
+     * @param string $rule
+     * @param string $delegate
+     * @return GrammarInterface|$this
      */
-    public function addDelegates(array $delegates): GrammarInterface
+    public function addDelegate(string $rule, string $delegate): GrammarInterface
     {
-        foreach ($delegates as $rule => $delegate) {
-            $this->delegates[$rule] = $delegate;
-        }
+        $this->delegates[$rule] = $delegate;
 
         return $this;
     }
