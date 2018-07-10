@@ -9,12 +9,9 @@ declare(strict_types=1);
 
 namespace Railt\Tests\Parser;
 
-use Railt\Io\Readable;
 use Railt\Lexer\Driver\NativeRegex;
 use Railt\Lexer\LexerInterface;
-use Railt\Parser\Ast\RuleInterface;
 use Railt\Parser\Driver\Llk;
-use Railt\Parser\Driver\Proxy;
 use Railt\Parser\Driver\Stateful;
 use Railt\Parser\Grammar;
 use Railt\Parser\ParserInterface;
@@ -35,7 +32,7 @@ class PP2Llk extends Stateful
      * @return ParserInterface
      * @throws \Railt\Parser\Exception\GrammarException
      */
-    protected function getParser(): ParserInterface
+    protected function boot(): ParserInterface
     {
         return new Llk($this->getLexer(), new Grammar([
             new Repetition(0, 0, -1, '__definition', null),
@@ -108,7 +105,7 @@ class PP2Llk extends Stateful
     /**
      * @return LexerInterface
      */
-    private function getLexer(): LexerInterface
+    public function getLexer(): LexerInterface
     {
         return new NativeRegex([
             'T_PRAGMA'              => '%pragma\\h+([\\w\\.]+)\\h+([^\\s]+)',

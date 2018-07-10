@@ -12,7 +12,6 @@ namespace Railt\Tests\Parser;
 use Railt\Lexer\Driver\NativeRegex;
 use Railt\Lexer\LexerInterface;
 use Railt\Parser\Driver\Llk;
-use Railt\Parser\Driver\Proxy;
 use Railt\Parser\Driver\Stateful;
 use Railt\Parser\Grammar;
 use Railt\Parser\ParserInterface;
@@ -30,7 +29,7 @@ class JsonLlk extends Stateful
      * @return ParserInterface
      * @throws \Railt\Parser\Exception\GrammarException
      */
-    protected function getParser(): ParserInterface
+    protected function boot(): ParserInterface
     {
         return new Llk($this->getLexer(), new Grammar([
             new Terminal(0, 'true', true),
@@ -61,7 +60,7 @@ class JsonLlk extends Stateful
     /**
      * @return LexerInterface
      */
-    private function getLexer(): LexerInterface
+    public function getLexer(): LexerInterface
     {
         return new NativeRegex([
             'skip'     => '\s',

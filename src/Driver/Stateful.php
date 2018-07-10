@@ -21,11 +21,11 @@ abstract class Stateful extends Proxy
      */
     public function __construct()
     {
-        parent::__construct($this->getParser());
+        parent::__construct($this->boot());
     }
 
     /**
      * @return ParserInterface
      */
-    abstract protected function getParser(): ParserInterface;
+    abstract protected function boot(): ParserInterface;
 }

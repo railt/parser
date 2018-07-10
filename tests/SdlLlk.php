@@ -29,7 +29,7 @@ class SdlLlk extends Stateful
      * @return ParserInterface
      * @throws \Railt\Parser\Exception\GrammarException
      */
-    protected function getParser(): ParserInterface
+    protected function boot(): ParserInterface
     {
         return new Llk($this->getLexer(), new Grammar([
             new Repetition(0, 0, -1, 'Directive', null),
@@ -269,7 +269,7 @@ class SdlLlk extends Stateful
     /**
      * @return LexerInterface
      */
-    private function getLexer(): LexerInterface
+    public function getLexer(): LexerInterface
     {
         return new NativeRegex([
             'T_NON_NULL'            => '!',

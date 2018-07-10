@@ -10,6 +10,7 @@ declare(strict_types=1);
 namespace Railt\Parser\Driver;
 
 use Railt\Io\Readable;
+use Railt\Lexer\LexerInterface;
 use Railt\Parser\Ast\RuleInterface;
 use Railt\Parser\Environment;
 use Railt\Parser\GrammarInterface;
@@ -43,11 +44,19 @@ class Proxy implements ParserInterface
     }
 
     /**
+     * @return LexerInterface
+     */
+    public function getLexer(): LexerInterface
+    {
+        return $this->parent->getLexer();
+    }
+
+    /**
      * @return GrammarInterface
      */
-    public function grammar(): GrammarInterface
+    public function getGrammar(): GrammarInterface
     {
-        return $this->parent->grammar();
+        return $this->parent->getGrammar();
     }
 
     /**
