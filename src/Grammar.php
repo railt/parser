@@ -40,7 +40,7 @@ class Grammar implements GrammarInterface
      * @param string|int|null $root
      * @throws GrammarException
      */
-    public function __construct(array $rules, $root = null, array $delegates = [])
+    public function __construct(array $rules = [], $root = null, array $delegates = [])
     {
         $this->addRules(\array_values($rules));
         $this->addDelegates($delegates);
