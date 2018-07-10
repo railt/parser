@@ -78,7 +78,7 @@ class Grammar implements GrammarInterface
     public function addDelegates(array $delegates): GrammarInterface
     {
         foreach ($delegates as $rule => $delegate) {
-            $this->delegates[$rule] = $delegate;
+            $this->addDelegate($rule, $delegate);
         }
 
         return $this;
