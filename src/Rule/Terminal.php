@@ -10,14 +10,58 @@ declare(strict_types=1);
 namespace Railt\Parser\Rule;
 
 /**
- * Interface Terminal
+ * Class Terminal
  */
-interface Terminal extends Symbol
+class Terminal extends Rule
 {
     /**
-     * Returns the name of the Token.
+     * Token name.
+     * @var string
+     */
+    protected $tokenName;
+
+    /**
+     * Token value.
+     * @var string
+     */
+    protected $value;
+
+    /**
+     * Whether the token is kept or not in the AST.
+     * @var bool
+     */
+    protected $kept = false;
+
+    /**
+     * Token constructor.
+     * @param string|int $name Name.
+     * @param string $tokenName Token name.
+     * @param bool $kept Whether the token is kept or not in the AST.
+     */
+    public function __construct($name, string $tokenName, bool $kept = false)
+    {
+        parent::__construct($name, null);
+
+        $this->tokenName = $tokenName;
+        $this->kept = $kept;
+    }
+
+    /**
+     * Get token name.
      *
      * @return string
      */
-    public function getName(): string;
+    public function getTokenName(): string
+    {
+        return $this->tokenName;
+    }
+
+    /**
+     * Check whether the token is kept in the AST or not.
+     * @return bool
+     */
+    public function isKept(): bool
+    {
+        return $this->kept;
+    }
 }

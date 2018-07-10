@@ -18,9 +18,24 @@ use Railt\Parser\Ast\RuleInterface;
 interface ParserInterface
 {
     /**
+     * @return Environment
+     */
+    public function env(): Environment;
+
+    /**
+     * @return GrammarInterface
+     */
+    public function grammar(): GrammarInterface;
+
+    /**
      * @param Readable $input
-     * @param Environment|null $env
+     * @return iterable
+     */
+    public function trace(Readable $input): iterable;
+
+    /**
+     * @param Readable $input
      * @return RuleInterface
      */
-    public function parse(Readable $input, Environment $env = null): RuleInterface;
+    public function parse(Readable $input): RuleInterface;
 }

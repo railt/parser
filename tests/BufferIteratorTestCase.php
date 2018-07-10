@@ -9,7 +9,7 @@ declare(strict_types=1);
 
 namespace Railt\Tests\Parser;
 
-use Railt\Parser\Iterator\Buffer;
+use Railt\Parser\TokenStream\Buffer;
 
 /**
  * Class BufferIteratorTestCase
@@ -40,11 +40,13 @@ class BufferIteratorTestCase extends TestCase
      */
     private function bufferOverGenerator(int $size, int $max = 100): Buffer
     {
-        return new Buffer((function () use ($size) {
+        $generator = (function () use ($size) {
             for ($i = 0; $i < $size; ++$i) {
                 yield $i;
             }
-        })->call($this), $max);
+        })->call($this);
+
+        return new Buffer($generator, $max);
     }
 
     /**

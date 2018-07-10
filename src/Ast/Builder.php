@@ -1,6 +1,6 @@
 <?php
 /**
- * This file is part of Railt package.
+ * This file is part of compiler package.
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -9,11 +9,12 @@ declare(strict_types=1);
 
 namespace Railt\Parser\Ast;
 
-use Railt\Parser\Ast\Rule as AstRule;
 use Railt\Parser\Environment;
-use Railt\Parser\Runtime\Trace\Entry;
-use Railt\Parser\Runtime\Trace\Escape;
-use Railt\Parser\Runtime\Trace\TokenTrace;
+use Railt\Parser\Exception\InternalException;
+use Railt\Parser\GrammarInterface;
+use Railt\Parser\Trace\Entry;
+use Railt\Parser\Trace\Escape;
+use Railt\Parser\Trace\Token;
 
 /**
  * Class Builder
@@ -21,14 +22,9 @@ use Railt\Parser\Runtime\Trace\TokenTrace;
 class Builder
 {
     /**
-     * @var \Iterator|\Traversable
-     */
-    private $trace;
-
-    /**
      * @var array
      */
-    private $delegates;
+    private $trace;
 
     /**
      * @var Environment
@@ -36,112 +32,145 @@ class Builder
     private $env;
 
     /**
-     * Builder constructor.
-     * @param iterable $trace
-     * @param array $delegates
-     * @param Environment|null $env
+     * @var GrammarInterface
      */
-    public function __construct(iterable $trace, array $delegates = [], Environment $env = null)
+    private $grammar;
+
+    /**
+     * Builder constructor.
+     * @param array $trace
+     * @param GrammarInterface $grammar
+     * @param Environment $env
+     */
+    public function __construct(array $trace, GrammarInterface $grammar, Environment $env)
     {
-        $this->delegates = $delegates;
-        $this->env = $env ?? new Environment();
-        $this->trace = \is_array($trace) ? new \ArrayIterator($trace) : $trace;
+        $this->env = $env;
+        $this->trace = $trace;
+        $this->grammar = $grammar;
     }
 
     /**
      * @return RuleInterface
-     * @throws \LogicException
+     * @throws InternalException
      */
-    public function reduce(): RuleInterface
+    public function build(): RuleInterface
     {
-        if (! $this->trace->current()) {
-            throw new \LogicException('Could not create AST from empty trace');
+        $result = $this->buildTree();
+
+        if (! $result instanceof RuleInterface) {
+            throw new InternalException('Cannot build AST, the trace is corrupted');
         }
 
-        return $this->build($this->trace)->current();
+        return $result;
     }
 
     /**
-     * @param \Iterator $iterator
-     * @return \Traversable|\Iterator
+     * Build AST from trace.
+     * Walk through the trace iteratively and recursively.
+     *
+     * @param int $i Current trace index.
+     * @param array &$children Collected children.
+     * @return Node|int
      */
-    private function build(\Iterator $iterator): \Traversable
+    protected function buildTree(int $i = 0, array &$children = [])
     {
-        while ($iterator->valid() && $current = $iterator->current()) {
-            $iterator->next();
+        $max = \count($this->trace);
 
-            switch (true) {
-                case $current instanceof TokenTrace:
-                    if ($current->isKept()) {
-                        yield $this->leaf($current);
+        while ($i < $max) {
+            $trace = $this->trace[$i];
+
+            if ($trace instanceof Entry) {
+                $ruleName  = $trace->getRule();
+                $rule      = $this->grammar->fetch($ruleName);
+                $isRule    = $trace->isTransitional() === false;
+                $nextTrace = $this->trace[$i + 1];
+                $id        = $rule->getNodeId();
+
+                // Optimization: Skip empty trace sequence.
+                if ($nextTrace instanceof Escape && $ruleName === $nextTrace->getRule()) {
+                    $i += 2;
+
+                    continue;
+                }
+
+                if ($isRule === true) {
+                    $children[] = $ruleName;
+                }
+
+                if ($id !== null) {
+                    $children[] = [$id];
+                }
+
+                $i = $this->buildTree($i + 1, $children);
+
+                if ($isRule === false) {
+                    continue;
+                }
+
+                $handle = [];
+                $childId    = null;
+
+                do {
+                    $pop = \array_pop($children);
+
+                    if (\is_object($pop) === true) {
+                        $handle[] = $pop;
+                    } elseif (\is_array($pop) && $childId === null) {
+                        $childId = \reset($pop);
+                    } elseif ($ruleName === $pop) {
+                        break;
+                    }
+                } while ($pop !== null);
+
+                if ($childId === null) {
+                    $childId = $rule->getDefaultId();
+                }
+
+                if ($childId === null) {
+                    for ($j = \count($handle) - 1; $j >= 0; --$j) {
+                        $children[] = $handle[$j];
                     }
 
-                    break;
-                case $current instanceof Entry:
-                    if ($current->isKept()) {
-                        yield $this->rule($current, $this->build($iterator));
-                    }
+                    continue;
+                }
 
-                    break;
-                case $current instanceof Escape:
-                    if ($current->isKept()) {
-                        break 2;
-                    }
+                $children[] = $this->rule((string)($id ?: $childId), \array_reverse($handle), $trace->getOffset());
+            } elseif ($trace instanceof Escape) {
+                return $i + 1;
+            } else {
+                if (! $trace->isKept()) {
+                    ++$i;
+                    continue;
+                }
+
+                $children[] = $this->leaf($trace);
+                ++$i;
             }
         }
+
+        return $children[0];
     }
 
     /**
-     * @param TokenTrace $terminal
-     * @return LeafInterface
-     */
-    private function leaf(TokenTrace $terminal): LeafInterface
-    {
-        return new Leaf($terminal->getName(), $terminal->getValue(), $terminal->getOffset());
-    }
-
-    /**
-     * @param Entry $entry
-     * @param iterable $children
+     * @param string $rule
+     * @param array $children
+     * @param int $offset
      * @return RuleInterface
      */
-    private function rule(Entry $entry, iterable $children): RuleInterface
+    private function rule(string $rule, array $children, int $offset): RuleInterface
     {
-        $name = $this->getRuleName($entry);
-        $class = $this->getRuleClass($entry);
-        $children = $this->getRuleChildren($children);
+        /** @var Rule $class */
+        $class = $this->grammar->delegate($rule) ?? Rule::class;
 
-        return new $class($this->env, $name, $children, $entry->getOffset());
+        return new $class($this->env, $rule, $children, $offset);
     }
 
     /**
-     * @param iterable $children
-     * @return array
+     * @param Token $token
+     * @return LeafInterface
      */
-    private function getRuleChildren(iterable $children): array
+    private function leaf(Token $token): LeafInterface
     {
-        if ($children instanceof \Traversable) {
-            return \iterator_to_array($children);
-        }
-
-        return $children;
-    }
-
-    /**
-     * @param Entry $entry
-     * @return string
-     */
-    private function getRuleName(Entry $entry): string
-    {
-        return \ltrim($entry->getName(), '#');
-    }
-
-    /**
-     * @param Entry $entry
-     * @return string|Delegate
-     */
-    private function getRuleClass(Entry $entry): string
-    {
-        return $this->delegates[$entry->getName()] ?? AstRule::class;
+        return new Leaf($token->getToken());
     }
 }

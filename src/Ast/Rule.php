@@ -30,7 +30,7 @@ class Rule extends Node implements RuleInterface
      * Rule constructor.
      * @param Environment $env
      * @param string $name
-     * @param array $children
+     * @param array|NodeInterface[] $children
      * @param int $offset
      */
     public function __construct(Environment $env, string $name, array $children = [], int $offset = 0)
@@ -97,7 +97,7 @@ class Rule extends Node implements RuleInterface
     /**
      * @param string $name
      * @param int|null $depth
-     * @return iterable
+     * @return iterable|\Generator
      */
     public function find(string $name, int $depth = null): iterable
     {
@@ -132,16 +132,18 @@ class Rule extends Node implements RuleInterface
     }
 
     /**
-     * @return string
+     * @return iterable|string[]|\Generator
      */
-    public function toString(): string
+    public function getValues(): iterable
     {
-        $result = '';
-
         foreach ($this->getChildren() as $child) {
-            $result .= $child->toString();
-        }
+            if ($child instanceof LeafInterface) {
+                yield $child;
+            }
 
-        return $result;
+            if ($child instanceof RuleInterface) {
+                yield from $child->getValues();
+            }
+        }
     }
 }

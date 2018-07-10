@@ -25,12 +25,12 @@ interface NodeInterface
     public function getOffset(): int;
 
     /**
-     * @return string
+     * @return iterable|string[]|\Generator
      */
-    public function __toString(): string;
+    public function getValues(): iterable;
 
     /**
      * @return string
      */
-    public function toString(): string;
+    public function __toString(): string;
 }

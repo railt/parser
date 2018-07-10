@@ -58,6 +58,10 @@ abstract class Node implements NodeInterface
      */
     public function __toString(): string
     {
-        return (new XmlDumper($this))->toString();
+        try {
+            return (new XmlDumper($this))->toString();
+        } catch (\Throwable $e) {
+            return $this->getName() . ': ' . $e->getMessage();
+        }
     }
 }

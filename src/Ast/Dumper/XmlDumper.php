@@ -79,6 +79,16 @@ class XmlDumper implements NodeDumperInterface
             $token = $this->createElement($root, $this->getName($ast), $ast->getValue());
             $this->renderAttributes($token, $ast);
 
+            if (\count($ast->getValues()) > 1) {
+                foreach ($ast->getValues() as $i => $value) {
+                    if ($i === 0) {
+                        continue;
+                    }
+                    
+                    $this->renderAttribute($token, 'value:' . $i, $value);
+                }
+            }
+
             return $token;
         }
 
@@ -125,7 +135,9 @@ class XmlDumper implements NodeDumperInterface
     private function getName($node): string
     {
         return $this->escape(
-            $node instanceof NodeInterface ? $node->getName() : \class_basename($node)
+            $node instanceof NodeInterface
+                ? \preg_replace('/\W+/u', '', $node->getName())
+                : \class_basename($node)
         );
     }
 
@@ -148,8 +160,18 @@ class XmlDumper implements NodeDumperInterface
 
         foreach ($reflection->getProperties(\ReflectionProperty::IS_PROTECTED) as $property) {
             $property->setAccessible(true);
-            $node->setAttribute($property->getName(), (string)$property->getValue($ast));
+            $this->renderAttribute($node, $property->getName(), (string)$property->getValue($ast));
         }
+    }
+
+    /**
+     * @param \DOMElement $node
+     * @param string $name
+     * @param string $value
+     */
+    private function renderAttribute(\DOMElement $node, string $name, string $value): void
+    {
+        $node->setAttribute(\htmlspecialchars($name), \htmlspecialchars((string)$value));
     }
 
     /**
@@ -190,9 +212,7 @@ class XmlDumper implements NodeDumperInterface
      */
     protected function depth(string $line, int $depth = 0): string
     {
-        $prefix = \str_repeat(' ', $depth * (
-                $this->initialIndention + $this->indention
-            ));
+        $prefix = \str_repeat(' ', $depth * ($this->initialIndention + $this->indention));
 
         return $prefix . $line . \PHP_EOL;
     }

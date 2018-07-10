@@ -21,8 +21,9 @@ although it allows you to switch between runtime, but provides out of the box tw
 implementations: [LL(1) - Simple and LL(k) - Lookahead](https://en.wikipedia.org/wiki/LL_parser).
 
 In order to create your own parser we need:
-1) Create lexer
-2) Create grammar
+1) Create [lexer](#lexer)
+2) Create [grammar](#grammar)
+3) Create [parser](#parser)
 
 ## Lexer
 
@@ -31,16 +32,23 @@ Let's create a primitive lexer that can handle spaces, numbers and the addition 
 > More information about the lexer can be found in [this repository](https://github.com/railt/lexer).
 
 ```php
-$lexer = new Railt\Lexer\Driver\NativeStateless();
-$lexer->add('T_WHITESPACE', '\\s+', false); 
-$lexer->add('T_NUMBER', '\\d+');
-$lexer->add('T_PLUS', '\\+');
+use Railt\Lexer\Driver\NativeRegex as Lexer;
+
+$lexer = (new Lexer())
+    ->add('T_WHITESPACE', '\\s+')
+    ->add('T_NUMBER', '\\d+')
+    ->add('T_PLUS', '\\+')
+    ->skip('T_WHITESPACE'); 
 ```
 
 ## Grammar
 
 Grammar will be a little more complicated. We need to determine in what order 
 the tokens in the source text can be located, which we will parse.
+
+```php
+$grammar = new Grammar(array $rules[, string|int $rootRuleId = null [, array $delegates = []]])
+```
 
 First we start with the [(E)BNF format](https://en.wikipedia.org/wiki/Extended_Backus%E2%80%93Naur_form):
 
@@ -49,11 +57,15 @@ First we start with the [(E)BNF format](https://en.wikipedia.org/wiki/Extended_B
 expr = T_NUMBER T_PLUS T_NUMBER ;
 ```
 
-To define this rule inside the Parser, we simply use two classes that define the rules 
+To define this rule inside the Grammar, we simply use two classes that define the rules 
 inside the product, this is the [concatenation](https://en.wikipedia.org/wiki/Concatenation) 
 and definitions of the tokens.
 
 ```php
+use Railt\Parser\Grammar;
+use Railt\Parser\Rule\Concatenation;
+use Railt\Parser\Rule\Terminal;
+
 //
 // This (e)BNF construction:
 // expression = T_NUMBER T_PLUS T_NUMBER ;
@@ -61,17 +73,24 @@ and definitions of the tokens.
 // Looks like:
 // Concatenation1 = Token1 Token2 Token1
 //
-$parser = new Railt\Parser\Parser($lexer, [
-    new Railt\Parser\Rule\Concatenation(0, [1, 2, 1], 'expression'),
-    new Railt\Parser\Rule\Token(1, 'T_NUMBER'),
-    new Railt\Parser\Rule\Token(2, 'T_PLUS'),
+$grammar = new Grammar([
+    new Concatenation(0, [1, 2, 1], 'expression'),
+    new Terminal(1, 'T_NUMBER'),
+    new Terminal(2, 'T_PLUS'),
 ]);
 ```
+
+## Parser
 
 In order to test the grammar, we can simply parse the source.
 
 ```php
-echo $parser->parse(Railt\Io\File::fromSources('2 + 2'));
+use Railt\Io\File;
+use Railt\Parser\Driver\Llk as Parser;
+
+$parser = new Parser($lexer, $grammar);
+
+echo $parser->parse(File::fromSources('2 + 2'));
 ```
 
 Will outputs:
@@ -88,12 +107,14 @@ Will outputs:
 But if the source is wrong, the parser will tell you exactly where the error occurred:
 
 ```php
-echo $parser->parse(Railt\Io\File::fromSources('2 + + 2'));
-//                                                  ^
+echo $parser->parse(File::fromSources('2 + + 2'));
+//                                         ^
 //
 // throws "Railt\Parser\Exception\UnexpectedTokenException" with message: 
 // "Unexpected token '+' (T_PLUS) at line 1 and column 5"
 ```
+
+## Rules
 
 In addition, there are other grammar rules.
 
@@ -102,8 +123,11 @@ In addition, there are other grammar rules.
 Choosing between several rules.
 
 ```php
-// EBNF: choice = some | any ;
-new Alternation(<RULE_ID>, [<some_ID>, <any_ID>], 'choice');
+//
+// EBNF: 
+//  choice = some1 | any2 ;
+//
+new Alternation(<ID>, [<ID_1>, <ID_1>], 'choice');
 ```
 
 ### Concatenation 
@@ -111,8 +135,11 @@ new Alternation(<RULE_ID>, [<some_ID>, <any_ID>], 'choice');
 Sequence of rules.
 
 ```php
-// EBNF: concat = some any ololo;
-new Concatenation(<RULE_ID>, [<some_ID>, <any_ID>, <ololo_ID>], 'concat');
+//
+// EBNF: 
+//  concat = some1 any2 rule3;
+//
+new Concatenation(<ID>, [<ID_1>, <ID_2>, <ID_3>], 'concat');
 ```
 
 ### Repetition
@@ -120,29 +147,27 @@ new Concatenation(<RULE_ID>, [<some_ID>, <any_ID>, <ololo_ID>], 'concat');
 Repeat one or more rules.
 
 ```php
-// EBNF: repeat zero or more = some*
-new Repetition(<RULE_ID>, 0, -1, [<some_ID>], 'repeat zero or more');
+//
+// EBNF:
+//  repeat_zero_or_more = some* ;
+//
+new Repetition(<ID>, 0, -1, <ID_1>, 'repeat_zero_or_more');
 
-// EBNF: repeat one or more = some+
-new Repetition(<RULE_ID>, 1, -1, [<some_ID>], 'repeat one or more');
-
-// EBNF: repeat = (some any)*
-new Repetition(<RULE_ID>, 0, -1, [<some_ID>, <any_ID>], 'repeat');
-
-// EBNF: repeat zero or one = [some]
-new Repetition(<RULE_ID>, 0, 1, [<some_ID>, <any_ID>], 'repeat zero or one');
+//
+// EBNF: 
+//  repeat_one_or_more = some+ ;
+//
+new Repetition(<ID>, 1, -1, <ID_2>, 'repeat one or more');
 ```
 
-### Token
+### Terminal
 
 Refers to the token defined in the lexer.
 
 ```php
-// Lexer: `->add('T_NUMBER', '\\d+')`
-new Token(<RULE_ID>, 'T_NUMBER');
+$kept = new Terminal(<ID>, 'T_NUMBER');
 
-// Lexer: `->add('T_WHITESPACE', '\\s+')`
-new Token(<RULE_ID>, 'T_WHITESPACE', false);
+$skipped = new Terminal(<ID>, 'T_WHITESPACE', false);
 ```
 
 ## Examples
@@ -155,14 +180,14 @@ operation = T_PLUS | T_MINUS ;
 ```
 
 ```php
-$parser = new Parser($lexer, [
+$parser = new Grammar([
     new Concatenation(0, [8, 6, 7], 'expression'),  // expression = T_NUMBER operation ( ... ) ;
     new Alternation(7, [8, 0]),                     // ( T_NUMBER | expression ) ;
     new Alternation(6, [1, 2], 'operation'),        // operation = T_PLUS | T_MINUS ;
     new Token(8, 'T_NUMBER'),
     new Token(1, 'T_PLUS'),
     new Token(2, 'T_MINUS'),
-], [Configuration::PRAGMA_ROOT => 'expression']);
+], 'expression');
 
 echo $parser->parse(File::fromSources('2 + 2 - 10 + 1000'));
 ```
@@ -219,7 +244,8 @@ interface RuleInterface extends NodeInterface
 
 interface LeafInterface extends NodeInterface
 {
-    public function getValue(): string;
+    public function getValue(int $group = 0): ?string;
+    public function getValues(): iterable;
 }
 ```
 
@@ -236,9 +262,23 @@ Each **Rule** can be represented as its own structure, different from the
 standard. To do this, you only need to define in the 
 parser when to delegate this authority.
 
-```php
+1) Grammar
+
+```bnf
 // operation = T_PLUS | T_MINUS ;
 
+$delegates = ['operation' => Operation::class];
+
+$grammar = new Grammar([
+    new Alternation(0, [1, 2], 'operation'),
+    new Terminal(1, 'T_PLUS'),
+    new Terminal(2, 'T_MINUS'),
+], 'operation', $delegates);
+```
+
+2) Delegate
+
+```php
 class Operation extends Rule 
 {
     public function isMinus(): bool 
@@ -251,14 +291,19 @@ class Operation extends Rule
         return $this->getChild(0)->getName() === 'T_PLUS';
     }
 }
+```
 
-$parser->addDelegate('operation', Operation::class);
+3) Result
 
-$ast = $parser->parse('2 + 2');
+```php
+$ast = (new Parser($lexer, $grammar))->parse('2 + 2');
+
 echo $ast;
 
-$ast->first('operation')->isPlus(); // true
-$ast->first('operation')->isMinus(); // false
+\get_class($ast->first('operation')); // Operation
+
+$ast->first('operation')->isPlus();   // true
+$ast->first('operation')->isMinus();  // false
 ```
 
 ```xml
@@ -274,8 +319,6 @@ $ast->first('operation')->isMinus(); // false
 ```
 
 Each **operation** rule will be an instance of `Operation` class.
-
-## Benchmarks
 
 ## Benchmarks
 

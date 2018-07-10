@@ -12,6 +12,6 @@ namespace Railt\Parser\Rule;
 /**
  * Class Alternation
  */
-class Alternation extends BaseProduction
+class Alternation extends Rule
 {
 }

@@ -12,62 +12,63 @@ namespace Railt\Parser\Rule;
 /**
  * Class Repetition
  */
-class Repetition extends BaseProduction
+class Repetition extends Rule
 {
-    public const INF_MAX_VALUE = -1;
-
     /**
+     * Minimum bound.
      * @var int
      */
-    protected $min;
+    protected $min = 0;
 
     /**
+     * Maximum bound.
      * @var int
      */
-    protected $max;
+    protected $max = 0;
 
     /**
      * Repetition constructor.
-     * @param int $id
-     * @param int $min
-     * @param int $max
-     * @param array $children
-     * @param null|string $name
+     * @param string|int $name Rule name.
+     * @param int $min Minimum bound.
+     * @param int $max Maximum bound.
+     * @param mixed $children Children.
+     * @param string $nodeId Node ID.
      */
-    public function __construct(int $id, int $min, int $max = self::INF_MAX_VALUE, array $children = [], ?string $name = null)
+    public function __construct($name, $min, $max, $children, $nodeId)
     {
-        \assert($max === self::INF_MAX_VALUE || $max >= $min,
-            'Min repetition value must be less than max');
+        $this->min = \max(0, (int)$min);
+        $this->max = \max(-1, (int)$max);
 
-        $this->min = $min;
-        $this->max = $max;
+        parent::__construct($name, $children, $nodeId);
 
-        parent::__construct($id, $children, $name);
+        \assert($min <= $max || $max === -1,
+            \sprintf('Cannot repeat with a min (%d) greater than max (%d).', $min, $max));
     }
 
     /**
+     * Get minimum bound.
      * @return int
      */
-    public function from(): int
+    public function getMin(): int
     {
         return $this->min;
     }
 
     /**
-     * @return int
-     */
-    public function to(): int
-    {
-        return $this->max;
-    }
-
-    /**
      * Check whether the maximum repetition is unbounded.
-     *
      * @return bool
      */
     public function isInfinite(): bool
     {
-        return $this->max === self::INF_MAX_VALUE;
+        return $this->getMax() === -1;
+    }
+
+    /**
+     * Get maximum bound.
+     * @return int
+     */
+    public function getMax(): int
+    {
+        return $this->max;
     }
 }
