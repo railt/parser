@@ -32,9 +32,9 @@ class Repetition extends Rule
      * @param int $min Minimum bound.
      * @param int $max Maximum bound.
      * @param mixed $children Children.
-     * @param string $nodeId Node ID.
+     * @param string|null $nodeId Node ID.
      */
-    public function __construct($name, $min, $max, $children, $nodeId)
+    public function __construct($name, $min, $max, $children, string $nodeId = null)
     {
         $this->min = \max(0, (int)$min);
         $this->max = \max(-1, (int)$max);

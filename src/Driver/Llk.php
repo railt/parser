@@ -17,6 +17,7 @@ use Railt\Parser\Rule\Concatenation;
 use Railt\Parser\Rule\Repetition;
 use Railt\Parser\Rule\Rule;
 use Railt\Parser\Rule\Terminal;
+use Railt\Parser\TokenStream\TokenStream;
 use Railt\Parser\Trace\Entry;
 use Railt\Parser\Trace\Escape;
 use Railt\Parser\Trace\Token;

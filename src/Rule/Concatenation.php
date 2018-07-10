@@ -10,12 +10,7 @@ declare(strict_types=1);
 namespace Railt\Parser\Rule;
 
 /**
- * Class \Railt\Parser\Rule\Concatenation.
- *
- * The concatenation rule.
- *
- * @copyright Copyright © 2007-2017 Hoa community
- * @license New BSD License
+ * Class Concatenation
  */
 class Concatenation extends Rule
 {
