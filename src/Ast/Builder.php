@@ -155,9 +155,9 @@ class Builder
      * @param string $rule
      * @param array $children
      * @param int $offset
-     * @return RuleInterface
+     * @return RuleInterface|Delegate
      */
-    private function rule(string $rule, array $children, int $offset): RuleInterface
+    private function rule(string $rule, array $children, int $offset): Delegate
     {
         /** @var Rule $class */
         $class = $this->grammar->delegate($rule) ?? Rule::class;
