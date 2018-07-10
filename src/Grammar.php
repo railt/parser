@@ -38,13 +38,12 @@ class Grammar implements GrammarInterface
      * @param array|Rule[] $rules
      * @param array|string[]|Delegate[] $delegates
      * @param string|int|null $root
-     * @throws GrammarException
      */
     public function __construct(array $rules = [], $root = null, array $delegates = [])
     {
         $this->addRules(\array_values($rules));
         $this->addDelegates($delegates);
-        $this->root = $root ?? $this->resolveRootRule();
+        $this->root = $root;
     }
 
     /**
@@ -109,10 +108,15 @@ class Grammar implements GrammarInterface
     }
 
     /**
-     * @return int|string
+     * @return int|null|string
+     * @throws GrammarException
      */
     public function beginAt()
     {
+        if ($this->root === null) {
+            $this->root = $this->resolveRootRule();
+        }
+
         return $this->root;
     }
 
