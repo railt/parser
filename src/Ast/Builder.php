@@ -152,17 +152,23 @@ class Builder
     }
 
     /**
-     * @param string $rule
+     * @param string $name
      * @param array $children
      * @param int $offset
-     * @return RuleInterface|Delegate
+     * @return RuleInterface
      */
-    private function rule(string $rule, array $children, int $offset): Delegate
+    private function rule(string $name, array $children, int $offset): RuleInterface
     {
         /** @var Rule $class */
-        $class = $this->grammar->delegate($rule) ?? Rule::class;
+        $class = $this->grammar->delegate($name) ?? Rule::class;
 
-        return new $class($this->env, $rule, $children, $offset);
+        $rule = new $class($name, $children, $offset);
+
+        if ($rule instanceof Delegate) {
+            $rule->boot($this->env);
+        }
+
+        return $rule;
     }
 
     /**

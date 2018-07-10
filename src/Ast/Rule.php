@@ -22,33 +22,16 @@ class Rule extends Node implements RuleInterface
     private $children;
 
     /**
-     * @var Environment
-     */
-    private $env;
-
-    /**
      * Rule constructor.
-     * @param Environment $env
      * @param string $name
      * @param array|NodeInterface[] $children
      * @param int $offset
      */
-    public function __construct(Environment $env, string $name, array $children = [], int $offset = 0)
+    public function __construct(string $name, array $children = [], int $offset = 0)
     {
         parent::__construct($name, $offset);
 
         $this->children = $children;
-        $this->env = $env;
-    }
-
-    /**
-     * @param string $variable
-     * @param mixed|null $default
-     * @return mixed
-     */
-    protected function env(string $variable, $default = null)
-    {
-        return $this->env->get($variable, $default);
     }
 
     /**

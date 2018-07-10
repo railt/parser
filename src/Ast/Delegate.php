@@ -12,16 +12,12 @@ namespace Railt\Parser\Ast;
 use Railt\Parser\Environment;
 
 /**
- * Interface RuleDelegate
+ * Interface Delegate
  */
-interface Delegate
+interface Delegate extends RuleInterface
 {
     /**
-     * Delegate constructor.
      * @param Environment $env
-     * @param string $name
-     * @param array $children
-     * @param int $offset
      */
-    public function __construct(Environment $env, string $name, array $children = [], int $offset = 0);
+    public function boot(Environment $env): void;
 }
