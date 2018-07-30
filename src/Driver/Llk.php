@@ -67,23 +67,29 @@ class Llk extends AbstractParser
         $this->prepare();
 
         do {
-            $isComplete = $this->unfold();
-
-            // Is end of input
-            if ($isComplete && $this->stream->isEoi()) {
+            if ($this->unfold() && $this->stream->isEoi()) {
                 break;
             }
 
-            if ($this->backtrack() === false) {
-                /** @var TokenInterface $token */
-                $token = $this->errorToken ?? $this->stream->current();
-
-                throw (new UnexpectedTokenException(\sprintf('Unexpected token %s', $token)))
-                    ->throwsIn($input, $token->getOffset());
-            }
+            $this->verifyBacktrace($input);
         } while (true);
 
         return $this->trace;
+    }
+
+    /**
+     * @param Readable $input
+     * @throws \Railt\Io\Exception\ExternalFileException
+     */
+    private function verifyBacktrace(Readable $input): void
+    {
+        if ($this->backtrack() === false) {
+            /** @var TokenInterface $token */
+            $token = $this->errorToken ?? $this->stream->current();
+
+            throw (new UnexpectedTokenException(\sprintf('Unexpected token %s', $token)))
+                ->throwsIn($input, $token->getOffset());
+        }
     }
 
     /**

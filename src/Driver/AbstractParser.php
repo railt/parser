@@ -11,9 +11,12 @@ namespace Railt\Parser\Driver;
 
 use Railt\Io\Readable;
 use Railt\Lexer\LexerInterface;
+use Railt\Lexer\Result\Unknown;
+use Railt\Lexer\TokenInterface;
 use Railt\Parser\Ast\Builder;
 use Railt\Parser\Ast\RuleInterface;
 use Railt\Parser\Environment;
+use Railt\Parser\Exception\UnexpectedTokenException;
 use Railt\Parser\GrammarInterface;
 use Railt\Parser\ParserInterface;
 use Railt\Parser\TokenStream\TokenStream;
@@ -93,9 +96,27 @@ abstract class AbstractParser implements ParserInterface
      * @param Readable $input
      * @param int $size
      * @return TokenStream
+     * @throws \Railt\Io\Exception\ExternalFileException
      */
     protected function stream(Readable $input, int $size = 1024): TokenStream
     {
-        return new TokenStream($this->lexer->lex($input), $size);
+        return new TokenStream($this->lex($input), $size);
+    }
+
+    /**
+     * @param Readable $input
+     * @return iterable|TokenInterface[]
+     * @throws \Railt\Io\Exception\ExternalFileException
+     */
+    private function lex(Readable $input): iterable
+    {
+        foreach ($this->lexer->lex($input) as $token) {
+            if ($token->getName() === Unknown::T_NAME) {
+                throw (new UnexpectedTokenException(\sprintf('Unexpected token %s', $token)))
+                    ->throwsIn($input, $token->getOffset());
+            }
+
+            yield $token;
+        }
     }
 }
