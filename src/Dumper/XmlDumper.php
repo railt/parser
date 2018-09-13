@@ -7,7 +7,7 @@
  */
 declare(strict_types=1);
 
-namespace Railt\Parser\Ast\Dumper;
+namespace Railt\Parser\Dumper;
 
 use Railt\Parser\Ast\LeafInterface;
 use Railt\Parser\Ast\NodeInterface;
@@ -116,7 +116,6 @@ class XmlDumper implements NodeDumperInterface
         switch (true) {
             case $value === null:
                 return $root->createElement($name);
-                
 
             case $value === $this->escape($value):
                 return $root->createElement($name, $value);
@@ -132,13 +131,15 @@ class XmlDumper implements NodeDumperInterface
      * @param NodeInterface $node
      * @return string
      */
-    private function getName($node): string
+    private function getName(NodeInterface $node): string
     {
-        return $this->escape(
-            $node instanceof NodeInterface
-                ? \preg_replace('/\W+/u', '', $node->getName())
-                : \class_basename($node)
-        );
+        $name = \basename(\str_replace('\\', '/', $node));
+
+        $result = $node instanceof NodeInterface
+            ? \preg_replace('/\W+/u', '', $node->getName())
+            : $name;
+
+        return $this->escape($result);
     }
 
     /**

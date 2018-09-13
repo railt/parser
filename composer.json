@@ -15,11 +15,11 @@
             "email": "nesk@xakep.ru"
         },
         {
-            "name" : "Ivan Enderlin",
+            "name": "Ivan Enderlin",
             "email": "ivan.enderlin@hoa-project.net"
         },
         {
-            "name"    : "Hoa community",
+            "name": "Hoa community",
             "homepage": "https://hoa-project.net/"
         }
     ],
@@ -34,10 +34,7 @@
     "autoload": {
         "psr-4": {
             "Railt\\Parser\\": "src"
-        },
-        "files": [
-            "src/helpers.php"
-        ]
+        }
     },
     "require-dev": {
         "phpunit/phpunit": "^6.5"

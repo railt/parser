@@ -9,13 +9,19 @@ declare(strict_types=1);
 
 namespace Railt\Parser\Ast;
 
-use Railt\Parser\Ast\Dumper\XmlDumper;
+use Railt\Parser\Dumper\NodeDumperInterface;
+use Railt\Parser\Dumper\XmlDumper;
 
 /**
  * Class Node
  */
 abstract class Node implements NodeInterface
 {
+    /**
+     * @var array|\Closure[]
+     */
+    protected static $extensions = [];
+
     /**
      * @var string
      */
@@ -59,9 +65,42 @@ abstract class Node implements NodeInterface
     public function __toString(): string
     {
         try {
-            return (new XmlDumper($this))->toString();
+            return $this->dump();
         } catch (\Throwable $e) {
             return $this->getName() . ': ' . $e->getMessage();
         }
+    }
+
+    /**
+     * @param NodeDumperInterface|string $dumper
+     * @return string
+     */
+    public function dump(string $dumper = XmlDumper::class): string
+    {
+        /** @var string|NodeDumperInterface $dumper */
+        $dumper = new $dumper($this);
+
+        return $dumper->toString();
+    }
+
+    /**
+     * @param string $name
+     * @param \Closure $then
+     */
+    public static function extend(string $name, \Closure $then): void
+    {
+        static::$extensions[$name] = $then;
+    }
+
+    /**
+     * @param string $name
+     * @param array $arguments
+     * @return mixed|null
+     */
+    public function __call(string $name, array $arguments = [])
+    {
+        $method = static::$extensions[$name] ?? null;
+
+        return $method ? $method(...$arguments) : null;
     }
 }

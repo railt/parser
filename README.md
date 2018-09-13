@@ -223,31 +223,8 @@ Result:
 An abstract syntax tree provides a set of classes 
 that can be represented in one of two ways:
 
-- `Leaf` - Terminal structures, which are represented inside the grammar as tokens.
-- `Rule` - Non-terminal structures that are part of the production of grammar.
-
-In the form of interfaces, these classes look like this:
-
-```php
-interface NodeInterface 
-{
-    public function getName(): string;
-    public function getOffset(): int;
-    public function __toString(): string;
-}
-
-interface RuleInterface extends NodeInterface
-{
-    public function getChildren(): iterable;
-    public function getChild(int $index): ?NodeInterface;
-}
-
-interface LeafInterface extends NodeInterface
-{
-    public function getValue(int $group = 0): ?string;
-    public function getValues(): iterable;
-}
-```
+- `Railt\Parser\Ast\LeafInterface` - Terminal structures, which are represented inside the grammar as tokens.
+- `Railt\Parser\Ast\RuleInterface` - Non-terminal structures that are part of the production of grammar.
 
 The name and location offset (in bytes) are part of their 
 common capabilities. However, terminals have the ability to retrieve 
@@ -298,7 +275,7 @@ class Operation extends Rule
 ```php
 $ast = (new Parser($lexer, $grammar))->parse('2 + 2');
 
-echo $ast;
+echo $ast->dump();
 
 \get_class($ast->first('operation')); // Operation
 

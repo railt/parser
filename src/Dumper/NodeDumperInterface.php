@@ -7,7 +7,7 @@
  */
 declare(strict_types=1);
 
-namespace Railt\Parser\Ast\Dumper;
+namespace Railt\Parser\Dumper;
 
 /**
  * Interface Dumper

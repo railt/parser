@@ -159,8 +159,7 @@ class Builder
      */
     private function rule(string $name, array $children, int $offset): RuleInterface
     {
-        /** @var Rule $class */
-        $class = $this->grammar->delegate($name) ?? Rule::class;
+        $class = $this->fetchRule($name);
 
         $rule = new $class($name, $children, $offset);
 
@@ -169,6 +168,16 @@ class Builder
         }
 
         return $rule;
+    }
+
+    /**
+     * @param string $name
+     * @return string|RuleInterface
+     */
+    protected function fetchRule(string $name): string
+    {
+        /** @var Rule $class */
+        return $this->grammar->delegate($name) ?? Rule::class;
     }
 
     /**
