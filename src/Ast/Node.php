@@ -52,6 +52,15 @@ abstract class Node implements NodeInterface
     }
 
     /**
+     * @param string $name
+     * @return bool
+     */
+    public function is(string $name): bool
+    {
+        return $this->name === $name;
+    }
+
+    /**
      * @return int
      */
     public function getOffset(): int

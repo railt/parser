@@ -9,10 +9,12 @@ declare(strict_types=1);
 
 namespace Railt\Parser\Ast;
 
+use Railt\Parser\Finder\Findable;
+
 /**
  * Interface RuleInterface
  */
-interface RuleInterface extends NodeInterface, \Countable, \IteratorAggregate
+interface RuleInterface extends NodeInterface, Findable, \Countable, \IteratorAggregate
 {
     /**
      * @return iterable|NodeInterface[]|RuleInterface[]|LeafInterface[]

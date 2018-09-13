@@ -133,7 +133,7 @@ class XmlDumper implements NodeDumperInterface
      */
     private function getName(NodeInterface $node): string
     {
-        $name = \basename(\str_replace('\\', '/', $node));
+        $name = \basename(\str_replace('\\', '/', \get_class($node)));
 
         $result = $node instanceof NodeInterface
             ? \preg_replace('/\W+/u', '', $node->getName())
@@ -161,7 +161,30 @@ class XmlDumper implements NodeDumperInterface
 
         foreach ($reflection->getProperties(\ReflectionProperty::IS_PROTECTED) as $property) {
             $property->setAccessible(true);
-            $this->renderAttribute($node, $property->getName(), (string)$property->getValue($ast));
+
+            if ($property->isStatic()) {
+                continue;
+            }
+
+            $this->renderAttribute($node, $property->getName(), $this->value($property->getValue($ast)));
+        }
+    }
+
+    /**
+     * @param mixed $value
+     * @return string
+     */
+    private function value($value): string
+    {
+        switch (true) {
+            case \is_scalar($value):
+                return (string)$value;
+            case \is_array($value):
+                return 'array(' . \count($value) . ') { ... }';
+            case \is_object($value):
+                return \get_class($value);
+            default:
+                return \print_r($value, true);
         }
     }
 
