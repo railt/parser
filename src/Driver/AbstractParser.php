@@ -55,11 +55,13 @@ abstract class AbstractParser implements ParserInterface
     }
 
     /**
+     * @param string $variable
+     * @param mixed $value
      * @return Environment
      */
-    public function env(): Environment
+    public function env(string $variable, $value): Environment
     {
-        return $this->env;
+        return $this->env->share($variable, $value);
     }
 
     /**

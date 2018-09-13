@@ -299,7 +299,22 @@ $operation->isMinus();  // false
 
 ### Environment
 
-// TODO
+You can also cast data and the external environment (or context) 
+inside each rule using the environment class:
+
+```php
+$sources = File::fromSources('...');
+
+$parser->env(File::class, $source); // Share environment variable
+
+class DelegateExample extends Rule 
+{
+    public function getFile(): File
+    {
+        return $this->env(File::class);
+    }
+}
+```
 
 ## Finder
 

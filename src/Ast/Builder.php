@@ -9,7 +9,6 @@ declare(strict_types=1);
 
 namespace Railt\Parser\Ast;
 
-use Railt\Lexer\TokenInterface;
 use Railt\Parser\Environment;
 use Railt\Parser\Exception\InternalException;
 use Railt\Parser\GrammarInterface;
@@ -45,8 +44,8 @@ class Builder
      */
     public function __construct(array $trace, GrammarInterface $grammar, Environment $env)
     {
-        $this->env = $env;
-        $this->trace = $trace;
+        $this->env     = $env;
+        $this->trace   = $trace;
         $this->grammar = $grammar;
     }
 
@@ -108,8 +107,8 @@ class Builder
                     continue;
                 }
 
-                $handle = [];
-                $childId    = null;
+                $handle  = [];
+                $childId = null;
 
                 do {
                     $pop = \array_pop($children);
@@ -176,15 +175,6 @@ class Builder
     }
 
     /**
-     * @param string $token
-     * @return string
-     */
-    protected function leafOf(string $token): string
-    {
-        return $this->grammar->delegate($token) ?? Leaf::class;
-    }
-
-    /**
      * @param Token $token
      * @return LeafInterface
      */
@@ -193,5 +183,14 @@ class Builder
         $leaf = $this->leafOf($token->getToken()->getName());
 
         return new $leaf($this->env, $token->getToken());
+    }
+
+    /**
+     * @param string $token
+     * @return string
+     */
+    protected function leafOf(string $token): string
+    {
+        return $this->grammar->delegate($token) ?? Leaf::class;
     }
 }
