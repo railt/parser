@@ -18,15 +18,15 @@ use Railt\Parser\Finder;
 trait FinderTrait
 {
     /**
-     * @param string $name
+     * @param string $query
      * @param int|null $depth
-     * @return iterable
+     * @return Finder
      * @throws \InvalidArgumentException
      * @throws \Railt\Lexer\Exception\BadLexemeException
      */
-    public function find(string $name, int $depth = null): iterable
+    public function find(string $query, int $depth = null): Finder
     {
-        return Finder::new($this->getFinderNode())->depth($depth)->query($name);
+        return Finder::new($this->getFinderNode())->depth($depth)->where($query);
     }
 
     /**
@@ -35,7 +35,7 @@ trait FinderTrait
     abstract protected function getFinderNode(): NodeInterface;
 
     /**
-     * @param string $name
+     * @param string $query
      * @param int|null $depth
      * @return null|NodeInterface
      * @throws \InvalidArgumentException
@@ -43,8 +43,8 @@ trait FinderTrait
      * @throws \Railt\Parser\Exception\UnexpectedTokenException
      * @throws \Railt\Parser\Exception\UnrecognizedTokenException
      */
-    public function first(string $name, int $depth = null): ?NodeInterface
+    public function first(string $query, int $depth = null): ?NodeInterface
     {
-        return Finder::new($this->getFinderNode())->depth($depth)->first($name);
+        return Finder::new($this->getFinderNode())->depth($depth)->where($query)->first();
     }
 }

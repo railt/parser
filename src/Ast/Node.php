@@ -11,6 +11,7 @@ namespace Railt\Parser\Ast;
 
 use Railt\Parser\Dumper\NodeDumperInterface;
 use Railt\Parser\Dumper\XmlDumper;
+use Railt\Parser\Environment;
 
 /**
  * Class Node
@@ -21,6 +22,10 @@ abstract class Node implements NodeInterface
      * @var array|\Closure[]
      */
     protected static $extensions = [];
+    /**
+     * @var int
+     */
+    protected $offset;
 
     /**
      * @var string
@@ -28,27 +33,40 @@ abstract class Node implements NodeInterface
     private $name;
 
     /**
-     * @var int
+     * @var Environment
      */
-    protected $offset;
+    private $env;
 
     /**
      * Node constructor.
+     * @param Environment $env
      * @param string $name
      * @param int $offset
      */
-    public function __construct(string $name, int $offset = 0)
+    public function __construct(Environment $env, string $name, int $offset = 0)
     {
+        $this->env    = $env;
         $this->name   = $name;
         $this->offset = $offset;
     }
 
     /**
-     * @return string
+     * @param string $env
+     * @param mixed $default
+     * @return mixed
      */
-    public function getName(): string
+    protected function get(string $env, $default)
     {
-        return $this->name;
+        return $this->env->get($env, $default);
+    }
+
+    /**
+     * @param string $name
+     * @param \Closure $then
+     */
+    public static function extend(string $name, \Closure $then): void
+    {
+        static::$extensions[$name] = $then;
     }
 
     /**
@@ -93,12 +111,11 @@ abstract class Node implements NodeInterface
     }
 
     /**
-     * @param string $name
-     * @param \Closure $then
+     * @return string
      */
-    public static function extend(string $name, \Closure $then): void
+    public function getName(): string
     {
-        static::$extensions[$name] = $then;
+        return $this->name;
     }
 
     /**

@@ -10,6 +10,7 @@ declare(strict_types=1);
 namespace Railt\Parser\Ast;
 
 use Railt\Lexer\TokenInterface;
+use Railt\Parser\Environment;
 
 /**
  * Class Leaf
@@ -23,11 +24,12 @@ class Leaf extends Node implements LeafInterface
 
     /**
      * Leaf constructor.
+     * @param Environment $env
      * @param TokenInterface $token
      */
-    public function __construct(TokenInterface $token)
+    public function __construct(Environment $env, TokenInterface $token)
     {
-        parent::__construct($token->getName(), $token->getOffset());
+        parent::__construct($env, $token->getName(), $token->getOffset());
 
         $this->value = $token->getGroups();
     }

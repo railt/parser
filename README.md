@@ -11,7 +11,23 @@
     <a href="https://raw.githubusercontent.com/railt/parser/master/LICENSE.md"><img src="https://poser.pugx.org/railt/parser/license" alt="License MIT"></a>
 </p>
 
-# Parser
+- [Introduction](#introduction)
+    - [Lexer](#lexer)
+    - [Grammar](#grammar)
+    - [Parser](#parser)
+- [Rules](#rules)
+    - [Alternation](#alternation)
+    - [Concatenation](#concatenation)
+    - [Repetition](#repetition)
+    - [Terminal](#terminal)
+- [Examples](#examples)
+- [Abstract Syntax Tree](#abstract-syntax-tree)
+- [Delegates](#delegates)
+    - [Environment](#environment)
+- [Finder](#finder)
+- [Benchmarks](#benchmarks)
+
+## Introduction
 
 The parser provides a set of components for grammar analysis (Parsing) of the source code 
 and converting them into an abstract syntax tree (AST).
@@ -25,7 +41,7 @@ In order to create your own parser we need:
 2) Create [grammar](#grammar)
 3) Create [parser](#parser)
 
-## Lexer
+### Lexer
 
 Let's create a primitive lexer that can handle spaces, numbers and the addition character.
 
@@ -41,7 +57,7 @@ $lexer = (new Lexer())
     ->skip('T_WHITESPACE'); 
 ```
 
-## Grammar
+### Grammar
 
 Grammar will be a little more complicated. We need to determine in what order 
 the tokens in the source text can be located, which we will parse.
@@ -80,7 +96,7 @@ $grammar = new Grammar([
 ]);
 ```
 
-## Parser
+### Parser
 
 In order to test the grammar, we can simply parse the source.
 
@@ -233,27 +249,27 @@ values, and non-terminal contain descendants.
 As you can see, each node has the `__toString` method, so the **XML** string
 of these rules is just a representation of their internal structure.
 
-## Delegate
+## Delegates
 
 Each **Rule** can be represented as its own structure, different from the 
 standard. To do this, you only need to define in the 
 parser when to delegate this authority.
 
-1) Grammar
+To begin with, we should specify in the grammar which rule 
+or token should delegate its authority to the external class:
 
-```bnf
+```php
+//
+// BNF 
 // operation = T_PLUS | T_MINUS ;
-
+//
 $delegates = ['operation' => Operation::class];
 
-$grammar = new Grammar([
-    new Alternation(0, [1, 2], 'operation'),
-    new Terminal(1, 'T_PLUS'),
-    new Terminal(2, 'T_MINUS'),
-], 'operation', $delegates);
+$grammar = new Grammar([...], 'operation', $delegates);
 ```
 
-2) Delegate
+The definition of such a class might look like this. 
+Please note that it must be an implementation `RuleInterface` or `LeafInterface`.
 
 ```php
 class Operation extends Rule 
@@ -270,32 +286,65 @@ class Operation extends Rule
 }
 ```
 
-3) Result
+And now, as an **operation** rule, we get the instance of `Operation` class:
 
 ```php
-$ast = (new Parser($lexer, $grammar))->parse('2 + 2');
+$ast = (new Parser($lexer, $grammar))->parse(File::fromSources('2 + 2'));
 
-echo $ast->dump();
+$operation = $ast->first('operation'); // Operation::class
 
-\get_class($ast->first('operation')); // Operation
-
-$ast->first('operation')->isPlus();   // true
-$ast->first('operation')->isMinus();  // false
+$operation->isPlus();   // true
+$operation->isMinus();  // false
 ```
 
-```xml
-<Ast>
-  <expression offset="0">
-    <T_NUMBER offset="0">2</T_NUMBER>
-    <operation offset="2">
-      <T_PLUS offset="2">+</T_PLUS>
-    </operation>
-    <T_NUMBER offset="4">2</T_NUMBER>
-  </expression>
-</Ast>
+### Environment
+
+// TODO
+
+## Finder
+
+For a convenient search by AST structure, we can take 
+advantage of the capabilities of the `Finder`. This class provides a 
+quick lazy API for querying and finding the right data 
+inside an Abstract Syntax Tree.
+
+Each rule already has the ability to execute the requested 
+query using the `find` method:
+
+```php
+$ast = $parser->parse(File::fromSources('2 + (3 * 4 + (42 - 10))'));
+
+echo $ast->find('T_DIGIT')->first(); 
+// T_DIGIT "2"
+
+foreach ($ast->find('group T_DIGIT') as $digit) {
+    echo $digit;
+    // T_DIGIT "3"
+    // T_DIGIT "4"
+    // T_DIGIT "42"
+    // T_DIGIT "10"
+}
+
+
+echo $ast->find('group > group operation')->first(); 
+// T_MINUS "-"
+
+
+foreach ($ast->find('group > T_DIGIT') as $digit) {
+    echo $digit;
+    // T_DIGIT "3"
+    // T_DIGIT "4"
+}
 ```
 
-Each **operation** rule will be an instance of `Operation` class.
+Allowed expressions:
+
+- `name` - Defines any node with the specified name.
+- `:name` - Defines only tokens (`LeafInterface`) with the specified name.
+- `#name` - Defines only rules (`RuleInterface`) with the specified name.
+- ` ` (whitespace) - Indicates that the next rule can be at any nested depth.
+- `>` - Indicates that the next rule can be strictly within the specified.
+- `(N)` - Indicates that the following rule may be strictly within the rule with the N (digit) nesting.
 
 ## Benchmarks
 

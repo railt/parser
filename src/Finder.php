@@ -14,12 +14,15 @@ use Railt\Lexer\LexerInterface;
 use Railt\Lexer\Result\Unknown;
 use Railt\Lexer\TokenInterface;
 use Railt\Parser\Ast\LeafInterface;
+use Railt\Parser\Ast\Node;
 use Railt\Parser\Ast\NodeInterface;
+use Railt\Parser\Ast\Rule;
 use Railt\Parser\Ast\RuleInterface;
 use Railt\Parser\Exception\UnexpectedTokenException;
 use Railt\Parser\Exception\UnrecognizedTokenException;
+use Railt\Parser\Finder\Depth;
+use Railt\Parser\Finder\Filter;
 use Railt\Parser\Finder\FinderLexer;
-use Traversable;
 
 /**
  * Class Finder
@@ -27,9 +30,9 @@ use Traversable;
 class Finder implements \IteratorAggregate
 {
     /**
-     * @var iterable|RuleInterface[]|RuleInterface
+     * @var NodeInterface
      */
-    private $node;
+    private $rule;
 
     /**
      * @var LexerInterface
@@ -37,56 +40,55 @@ class Finder implements \IteratorAggregate
     private $lexer;
 
     /**
-     * @var null|int
+     * @var Depth
      */
     private $depth;
 
     /**
-     * @var string
+     * @var string|null
      */
-    private $query = '*';
+    private $query;
 
     /**
      * Finder constructor.
-     * @param iterable|NodeInterface $rules
-     * @throws \InvalidArgumentException
+     * @param NodeInterface $rule
      * @throws \Railt\Lexer\Exception\BadLexemeException
      */
-    public function __construct($rules)
+    public function __construct(NodeInterface $rule)
     {
-        $this->node = $rules;
+        $this->depth = Depth::any();
+        $this->rule = $rule;
         $this->lexer = new FinderLexer();
     }
 
     /**
-     * @param iterable|NodeInterface $rules
+     * @param NodeInterface $rule
      * @return Finder
-     * @throws \InvalidArgumentException
      * @throws \Railt\Lexer\Exception\BadLexemeException
      */
-    public static function new($rules): Finder
+    public static function new(NodeInterface $rule): Finder
     {
-        return new static($rules);
+        return new static($rule);
+    }
+
+    /**
+     * @param int|null $to
+     * @return Finder
+     */
+    public function depth(int $to = null): Finder
+    {
+        $this->depth->to($to);
+
+        return $this;
     }
 
     /**
      * @param string $query
      * @return Finder
      */
-    public function query(string $query): Finder
+    public function where(string $query): Finder
     {
-        $this->query = $query;
-
-        return $this;
-    }
-
-    /**
-     * @param int|null $depth
-     * @return Finder
-     */
-    public function depth(int $depth = null): Finder
-    {
-        $this->depth = $depth;
+        $this->query .= $query;
 
         return $this;
     }
@@ -129,9 +131,9 @@ class Finder implements \IteratorAggregate
 
     /**
      * @param TokenInterface|null $token
-     * @return int|null
+     * @return Depth
      */
-    private function exprDepth(?TokenInterface $token): ?int
+    private function exprDepth(?TokenInterface $token): Depth
     {
         if ($token === null) {
             return $this->depth;
@@ -139,17 +141,17 @@ class Finder implements \IteratorAggregate
 
         switch ($token->getName()) {
             case FinderLexer::T_DIRECT_DEPTH:
-                return 1;
+                return Depth::lte(1);
             case FinderLexer::T_EXACT_DEPTH:
-                return (int)$token->getValue(1);
+                return Depth::equals((int)$token->getValue(1));
             default:
-                return null;
+                return Depth::any();
         }
     }
 
     /**
      * @param string $query
-     * @return \Generator
+     * @return \Generator|Filter[]
      * @throws UnexpectedTokenException
      * @throws UnrecognizedTokenException
      */
@@ -162,56 +164,116 @@ class Finder implements \IteratorAggregate
         foreach ($this->lookahead($query) as $token => $lookahead) {
             switch ($lookahead->getName()) {
                 case FinderLexer::T_ANY:
-                    yield $this->exprDepth($token) => function (): bool {
-                        return true;
-                    };
+                    yield Filter::any($this->exprDepth($token));
                     break;
 
                 case FinderLexer::T_NODE:
-                    yield $this->exprDepth($token) => function (NodeInterface $node) use ($lookahead): bool {
-                        return $lookahead->getValue(1) === $node->getName();
-                    };
+                    yield Filter::node($lookahead->getValue(1), $this->exprDepth($token));
                     break;
 
                 case FinderLexer::T_LEAF:
-                    yield $this->exprDepth($token) => function (NodeInterface $node) use ($lookahead): bool {
-                        return $lookahead->getValue(1) === $node->getName() && $node instanceof LeafInterface;
-                    };
+                    yield Filter::leaf($lookahead->getValue(1), $this->exprDepth($token));
                     break;
 
                 case FinderLexer::T_RULE:
-                    yield $this->exprDepth($token) => function (NodeInterface $node) use ($lookahead): bool {
-                        return $lookahead->getValue(1) === $node->getName() && $node instanceof RuleInterface;
-                    };
+                    yield Filter::rule($lookahead->getValue(1), $this->exprDepth($token));
                     break;
             }
         }
     }
 
     /**
-     * @return iterable|NodeInterface[]
+     * @return string
      */
-    private function root(): iterable
+    private function query(): string
     {
-        return $this->node instanceof NodeInterface ? [$this->node] : $this->node;
+        return $this->query ?? '*';
     }
 
     /**
-     * @param string $query
      * @return NodeInterface[]|RuleInterface[]|LeafInterface[]|iterable|\Generator
      * @throws UnexpectedTokenException
      * @throws UnrecognizedTokenException
      */
-    public function all(string $query = null): iterable
+    public function all(): iterable
     {
-        $current = $this->root();
+        [$expressions, $result] = [$this->expr($this->query()), [$this->rule]];
 
-        foreach ($this->expr($query ?? $this->query) as $depth => $filter) {
-            $depth = $depth ?? \PHP_INT_MAX;
-            $current = $this->bypass($current, $filter, $depth);
+        foreach ($expressions as $expression) {
+            $result = $this->exportEach($result, $expression, 0);
+            $result = $this->unpack($result);
         }
 
-        yield from $current;
+        return $result;
+    }
+
+    /**
+     * @param iterable $result
+     * @return iterable
+     */
+    private function unpack(iterable $result): iterable
+    {
+        foreach ($result as $child) {
+            if ($child instanceof RuleInterface) {
+                yield from $child;
+            } else {
+                yield $child;
+            }
+        }
+    }
+
+    /**
+     * @param NodeInterface $node
+     * @param Filter $filter
+     * @param int $depth
+     * @return iterable|NodeInterface[]
+     */
+    private function export(NodeInterface $node, Filter $filter, int $depth): iterable
+    {
+        if ($this->match($node, $filter, $depth)) {
+            yield $node;
+        }
+
+        if ($node instanceof RuleInterface && $filter->depth->notFinished($depth)) {
+            yield from $this->bypass($node, $filter, $depth + 1);
+        }
+    }
+
+    /**
+     * @param iterable $nodes
+     * @param Filter $filter
+     * @param int $depth
+     * @return iterable
+     */
+    private function exportEach(iterable $nodes, Filter $filter, int $depth): iterable
+    {
+        foreach ($nodes as $node) {
+            yield from $this->export($node, $filter, $depth);
+        }
+    }
+
+    /**
+     * @param RuleInterface $rule
+     * @param Filter $filter
+     * @param int $depth
+     * @return iterable|NodeInterface[]
+     */
+    private function bypass(RuleInterface $rule, Filter $filter, int $depth): iterable
+    {
+        foreach ($rule->getChildren() as $child) {
+            yield from $this->export($child, $filter, $depth);
+        }
+    }
+
+    /**
+     * @param NodeInterface $node
+     * @param Filter $filter
+     * @param int $depth
+     * @return bool
+     */
+    private function match(NodeInterface $node, Filter $filter, int $depth): bool
+    {
+        return $filter->match($node, $depth);
     }
 
     /**
@@ -237,7 +299,7 @@ class Finder implements \IteratorAggregate
      */
     private function each(string $query, \Closure $then): iterable
     {
-        foreach ($this->all($query) as $rule) {
+        foreach ($this->where($query)->all() as $rule) {
             $result = $then($rule);
 
             switch (true) {
@@ -254,58 +316,26 @@ class Finder implements \IteratorAggregate
     }
 
     /**
-     * @param string|null $query
      * @return null|NodeInterface
      * @throws UnexpectedTokenException
      * @throws UnrecognizedTokenException
      */
-    public function first(string $query = null): ?NodeInterface
+    public function first(): ?NodeInterface
     {
-        return $this->all($query)->current();
+        return $this->all()->current();
     }
 
     /**
-     * @param string $query
      * @param int $group
      * @return null|string
      * @throws UnexpectedTokenException
      * @throws UnrecognizedTokenException
      */
-    public function value(string $query, int $group = 0): ?string
+    public function value(int $group = 0): ?string
     {
-        $result = $this->first($query);
+        $result = $this->first();
 
         return $result ? $result->getValue($group) : null;
-    }
-
-    /**
-     * @param iterable|RuleInterface[]|RuleInterface $rule
-     * @param \Closure $filter
-     * @param int $depth
-     * @return \Generator|RuleInterface[]|LeafInterface[]
-     */
-    private function bypass(iterable $rule, \Closure $filter, int $depth): \Generator
-    {
-        foreach ($rule as $child) {
-            yield from $this->export($child, $filter, $depth);
-        }
-    }
-
-    /**
-     * @param NodeInterface $node
-     * @param \Closure $filter
-     * @param int $depth
-     * @return \Generator|RuleInterface[]
-     */
-    private function export(NodeInterface $node, \Closure $filter, int $depth): \Generator
-    {
-        if ($filter($node)) {
-            yield $node;
-        }
-
-        if ($depth > 0 && $node instanceof RuleInterface) {
-            yield from $this->bypass($node, $filter, $depth - 1);
-        }
     }
 
     /**

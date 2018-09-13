@@ -9,6 +9,7 @@ declare(strict_types=1);
 
 namespace Railt\Parser\Ast;
 
+use Railt\Lexer\TokenInterface;
 use Railt\Parser\Environment;
 use Railt\Parser\Exception\InternalException;
 use Railt\Parser\GrammarInterface;
@@ -159,25 +160,28 @@ class Builder
      */
     private function rule(string $name, array $children, int $offset): RuleInterface
     {
-        $class = $this->fetchRule($name);
+        $class = $this->ruleOf($name);
 
-        $rule = new $class($name, $children, $offset);
-
-        if ($rule instanceof Delegate) {
-            $rule->boot($this->env);
-        }
-
-        return $rule;
+        return new $class($this->env, $name, $children, $offset);
     }
 
     /**
      * @param string $name
      * @return string|RuleInterface
      */
-    protected function fetchRule(string $name): string
+    protected function ruleOf(string $name): string
     {
         /** @var Rule $class */
         return $this->grammar->delegate($name) ?? Rule::class;
+    }
+
+    /**
+     * @param string $token
+     * @return string
+     */
+    protected function leafOf(string $token): string
+    {
+        return $this->grammar->delegate($token) ?? Leaf::class;
     }
 
     /**
@@ -186,6 +190,8 @@ class Builder
      */
     private function leaf(Token $token): LeafInterface
     {
-        return new Leaf($token->getToken());
+        $leaf = $this->leafOf($token->getToken()->getName());
+
+        return new $leaf($this->env, $token->getToken());
     }
 }

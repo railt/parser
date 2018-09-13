@@ -9,6 +9,7 @@ declare(strict_types=1);
 
 namespace Railt\Parser\Ast;
 
+use Railt\Parser\Environment;
 use Railt\Parser\Finder\FinderTrait;
 
 /**
@@ -25,13 +26,14 @@ class Rule extends Node implements RuleInterface
 
     /**
      * Rule constructor.
+     * @param Environment $env
      * @param string $name
      * @param array|NodeInterface[] $children
      * @param int $offset
      */
-    public function __construct(string $name, array $children = [], int $offset = 0)
+    public function __construct(Environment $env, string $name, array $children = [], int $offset = 0)
     {
-        parent::__construct($name, $offset);
+        parent::__construct($env, $name, $offset);
 
         $this->children = $children;
     }
