@@ -357,7 +357,8 @@ Allowed expressions:
 - `name` - Defines any node with the specified name.
 - `:name` - Defines only tokens (`LeafInterface`) with the specified name.
 - `#name` - Defines only rules (`RuleInterface`) with the specified name.
-- ` ` (whitespace) - Indicates that the next rule can be at any nested depth.
+- `*` - Any rule
+- ` ` - Whitespace indicates that the next rule can be at any nested depth.
 - `>` - Indicates that the next rule can be strictly within the specified.
 - `(N)` - Indicates that the following rule may be strictly within the rule with the N (digit) nesting.
 
