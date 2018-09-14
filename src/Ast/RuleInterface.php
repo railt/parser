@@ -14,7 +14,7 @@ use Railt\Parser\Finder\Findable;
 /**
  * Interface RuleInterface
  */
-interface RuleInterface extends NodeInterface, Findable, \Countable, \IteratorAggregate
+interface RuleInterface extends NodeInterface, \Countable, \IteratorAggregate
 {
     /**
      * @return iterable|NodeInterface[]|RuleInterface[]|LeafInterface[]

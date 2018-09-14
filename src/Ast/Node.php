@@ -12,16 +12,21 @@ namespace Railt\Parser\Ast;
 use Railt\Parser\Dumper\NodeDumperInterface;
 use Railt\Parser\Dumper\XmlDumper;
 use Railt\Parser\Environment;
+use Railt\Parser\Finder\Findable;
+use Railt\Parser\Finder\FinderTrait;
 
 /**
  * Class Node
  */
-abstract class Node implements NodeInterface
+abstract class Node implements NodeInterface, Findable
 {
+    use FinderTrait;
+
     /**
      * @var array|\Closure[]
      */
     protected static $extensions = [];
+
     /**
      * @var int
      */
@@ -48,6 +53,14 @@ abstract class Node implements NodeInterface
         $this->env    = $env;
         $this->name   = $name;
         $this->offset = $offset;
+    }
+
+    /**
+     * @return NodeInterface
+     */
+    protected function getFinderNode(): NodeInterface
+    {
+        return $this;
     }
 
     /**
@@ -122,11 +135,14 @@ abstract class Node implements NodeInterface
      * @param string $name
      * @param array $arguments
      * @return mixed|null
+     * @throws \BadMethodCallException
      */
     public function __call(string $name, array $arguments = [])
     {
-        $method = static::$extensions[$name] ?? null;
+        if ($method = static::$extensions[$name] ?? null) {
+            return $method(...$arguments);
+        }
 
-        return $method ? $method(...$arguments) : null;
+        throw new \BadMethodCallException('Method ' . $method . ' not exists');
     }
 }

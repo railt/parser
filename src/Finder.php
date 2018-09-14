@@ -30,9 +30,9 @@ use Railt\Parser\Finder\FinderLexer;
 class Finder implements \IteratorAggregate
 {
     /**
-     * @var NodeInterface
+     * @var NodeInterface[]
      */
-    private $rule;
+    private $rules;
 
     /**
      * @var LexerInterface
@@ -51,24 +51,26 @@ class Finder implements \IteratorAggregate
 
     /**
      * Finder constructor.
-     * @param NodeInterface $rule
+     * @param NodeInterface ...$rules
      * @throws \Railt\Lexer\Exception\BadLexemeException
+     * @throws \InvalidArgumentException
      */
-    public function __construct(NodeInterface $rule)
+    public function __construct(NodeInterface ...$rules)
     {
         $this->depth = Depth::any();
-        $this->rule = $rule;
+        $this->rules = $rules;
         $this->lexer = new FinderLexer();
     }
 
     /**
-     * @param NodeInterface $rule
+     * @param NodeInterface ...$rules
      * @return Finder
      * @throws \Railt\Lexer\Exception\BadLexemeException
+     * @throws \InvalidArgumentException
      */
-    public static function new(NodeInterface $rule): Finder
+    public static function new(NodeInterface ...$rules): Finder
     {
-        return new static($rule);
+        return new static($rules);
     }
 
     /**
@@ -197,7 +199,7 @@ class Finder implements \IteratorAggregate
      */
     public function all(): iterable
     {
-        [$expressions, $result] = [$this->expr($this->query()), [$this->rule]];
+        [$expressions, $result] = [$this->expr($this->query()), $this->rules];
 
         foreach ($expressions as $expression) {
             $result = $this->exportEach($result, $expression, 0);
@@ -218,6 +220,47 @@ class Finder implements \IteratorAggregate
                 yield from $child;
             } else {
                 yield $child;
+            }
+        }
+    }
+
+    /**
+     * @param string $query
+     * @param \Closure $then
+     * @return Finder
+     * @throws UnexpectedTokenException
+     * @throws UnrecognizedTokenException
+     * @throws \InvalidArgumentException
+     * @throws \Railt\Lexer\Exception\BadLexemeException
+     */
+    public function when(string $query, \Closure $then): Finder
+    {
+        $nodes = \iterator_to_array($this->each($query, $then), false);
+
+        return new static(...$nodes);
+    }
+
+    /**
+     * @param string $query
+     * @param \Closure $then
+     * @return \Traversable
+     * @throws UnexpectedTokenException
+     * @throws UnrecognizedTokenException
+     */
+    private function each(string $query, \Closure $then): \Traversable
+    {
+        foreach ($this->where($query)->all() as $rule) {
+            $result = $then($rule);
+
+            switch (true) {
+                case \is_iterable($result):
+                    yield from $result;
+                    break;
+                case (bool)$result;
+                    yield $result;
+                    break;
+                default:
+                    yield $rule;
             }
         }
     }
@@ -274,45 +317,6 @@ class Finder implements \IteratorAggregate
     private function match(NodeInterface $node, Filter $filter, int $depth): bool
     {
         return $filter->match($node, $depth);
-    }
-
-    /**
-     * @param string $query
-     * @param \Closure $then
-     * @return Finder
-     * @throws UnexpectedTokenException
-     * @throws UnrecognizedTokenException
-     * @throws \InvalidArgumentException
-     * @throws \Railt\Lexer\Exception\BadLexemeException
-     */
-    public function when(string $query, \Closure $then): Finder
-    {
-        return new static($this->each($query, $then));
-    }
-
-    /**
-     * @param string $query
-     * @param \Closure $then
-     * @return iterable
-     * @throws UnexpectedTokenException
-     * @throws UnrecognizedTokenException
-     */
-    private function each(string $query, \Closure $then): iterable
-    {
-        foreach ($this->where($query)->all() as $rule) {
-            $result = $then($rule);
-
-            switch (true) {
-                case \is_iterable($result):
-                    yield from $result;
-                    break;
-                case (bool)$result;
-                    yield $result;
-                    break;
-                default:
-                    yield $rule;
-            }
-        }
     }
 
     /**

@@ -38,13 +38,13 @@ trait FinderTrait
      * @param string $query
      * @param int|null $depth
      * @return null|NodeInterface
-     * @throws \InvalidArgumentException
-     * @throws \Railt\Lexer\Exception\BadLexemeException
-     * @throws \Railt\Parser\Exception\UnexpectedTokenException
-     * @throws \Railt\Parser\Exception\UnrecognizedTokenException
      */
     public function first(string $query, int $depth = null): ?NodeInterface
     {
-        return Finder::new($this->getFinderNode())->depth($depth)->where($query)->first();
+        try {
+            return $this->find($query, $depth)->first();
+        } catch (\Throwable $e) {
+            return null;
+        }
     }
 }

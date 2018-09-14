@@ -10,15 +10,12 @@ declare(strict_types=1);
 namespace Railt\Parser\Ast;
 
 use Railt\Parser\Environment;
-use Railt\Parser\Finder\FinderTrait;
 
 /**
  * Class Rule
  */
 class Rule extends Node implements RuleInterface
 {
-    use FinderTrait;
-
     /**
      * @var array|iterable|\Traversable
      */
@@ -111,13 +108,5 @@ class Rule extends Node implements RuleInterface
         foreach ($this->getLeaves() as $leaf) {
             yield $leaf->getValue();
         }
-    }
-
-    /**
-     * @return NodeInterface
-     */
-    protected function getFinderNode(): NodeInterface
-    {
-        return $this;
     }
 }
