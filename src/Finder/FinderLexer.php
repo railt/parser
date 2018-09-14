@@ -68,7 +68,7 @@ class FinderLexer implements LexerInterface
      */
     public function __construct()
     {
-        $this->inner = Factory::create(self::TOKENS, self::TOKENS_SKIP, 0);
+        $this->inner = Factory::create(self::TOKENS, self::TOKENS_SKIP);
     }
 
     /**
