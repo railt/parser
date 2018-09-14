@@ -133,11 +133,12 @@ class Finder implements \IteratorAggregate
     public function all(): iterable
     {
         try {
-            [$expressions, $result] = [$this->expr($this->query()), $this->rules];
+            [$expressions, $result] = [$this->expr($this->query()), null];
 
             foreach ($expressions as $expression) {
+                $result = $result ? $this->unpack($result) : $result;
+                $result = $result ?? $this->rules;
                 $result = $this->exportEach($result, $expression, 0);
-                $result = $this->unpack($result);
             }
 
             return $result;

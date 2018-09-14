@@ -143,6 +143,12 @@ abstract class Node implements NodeInterface, Findable
             return $method(...$arguments);
         }
 
-        throw new \BadMethodCallException('Method ' . $method . ' not exists');
+        if (\method_exists($this, $getter = 'get' . \ucfirst($name))) {
+            $method = [$this, $getter];
+            return $method(...$arguments);
+        }
+
+        $error = 'Method %s::%s does not not exists';
+        throw new \BadMethodCallException(\sprintf($error, __CLASS__, $name));
     }
 }
