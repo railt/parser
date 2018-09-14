@@ -14,10 +14,10 @@ use Railt\Lexer\LexerInterface;
 use Railt\Lexer\Result\Unknown;
 use Railt\Lexer\TokenInterface;
 use Railt\Parser\Ast\LeafInterface;
-use Railt\Parser\Ast\Node;
 use Railt\Parser\Ast\NodeInterface;
-use Railt\Parser\Ast\Rule;
 use Railt\Parser\Ast\RuleInterface;
+use Railt\Parser\Exception\InternalException;
+use Railt\Parser\Exception\ParserException;
 use Railt\Parser\Exception\UnexpectedTokenException;
 use Railt\Parser\Exception\UnrecognizedTokenException;
 use Railt\Parser\Finder\Depth;
@@ -52,25 +52,27 @@ class Finder implements \IteratorAggregate
     /**
      * Finder constructor.
      * @param NodeInterface ...$rules
-     * @throws \Railt\Lexer\Exception\BadLexemeException
-     * @throws \InvalidArgumentException
+     * @throws InternalException
      */
     public function __construct(NodeInterface ...$rules)
     {
-        $this->depth = Depth::any();
-        $this->rules = $rules;
-        $this->lexer = new FinderLexer();
+        try {
+            $this->rules = $rules;
+            $this->depth = Depth::any();
+            $this->lexer = new FinderLexer();
+        } catch (\Throwable $e) {
+            throw new InternalException($e->getMessage(), $e->getCode());
+        }
     }
 
     /**
      * @param NodeInterface ...$rules
      * @return Finder
-     * @throws \Railt\Lexer\Exception\BadLexemeException
-     * @throws \InvalidArgumentException
+     * @throws InternalException
      */
     public static function new(NodeInterface ...$rules): Finder
     {
-        return new static($rules);
+        return new static(...$rules);
     }
 
     /**
@@ -86,13 +88,97 @@ class Finder implements \IteratorAggregate
 
     /**
      * @param string $query
+     * @param \Closure $then
      * @return Finder
+     * @throws InternalException
+     * @throws ParserException
      */
-    public function where(string $query): Finder
+    public function when(string $query, \Closure $then): Finder
     {
-        $this->query .= $query;
+        $nodes = \iterator_to_array($this->each($query, $then), false);
 
-        return $this;
+        return new static(...$nodes);
+    }
+
+    /**
+     * @param string $query
+     * @param \Closure $then
+     * @return \Traversable
+     * @throws InternalException
+     * @throws ParserException
+     */
+    private function each(string $query, \Closure $then): \Traversable
+    {
+        foreach ($this->where($query)->all() as $rule) {
+            $result = $then($rule);
+
+            switch (true) {
+                case \is_iterable($result):
+                    yield from $result;
+                    break;
+                case (bool)$result;
+                    yield $result;
+                    break;
+                default:
+                    yield $rule;
+            }
+        }
+    }
+
+    /**
+     * @return NodeInterface[]|RuleInterface[]|LeafInterface[]|iterable|\Generator
+     * @throws InternalException
+     * @throws ParserException
+     */
+    public function all(): iterable
+    {
+        try {
+            [$expressions, $result] = [$this->expr($this->query()), $this->rules];
+
+            foreach ($expressions as $expression) {
+                $result = $this->exportEach($result, $expression, 0);
+                $result = $this->unpack($result);
+            }
+
+            return $result;
+        } catch (ParserException $e) {
+            throw $e;
+        } catch (\Throwable $e) {
+            throw new InternalException($e->getMessage(), $e->getCode());
+        }
+    }
+
+    /**
+     * @param string $query
+     * @return \Generator|Filter[]
+     * @throws UnexpectedTokenException
+     * @throws UnrecognizedTokenException
+     */
+    private function expr(string $query): \Generator
+    {
+        /**
+         * @var TokenInterface $token
+         * @var TokenInterface $lookahead
+         */
+        foreach ($this->lookahead($query) as $token => $lookahead) {
+            switch ($lookahead->getName()) {
+                case FinderLexer::T_ANY:
+                    yield Filter::any($this->exprDepth($token));
+                    break;
+
+                case FinderLexer::T_NODE:
+                    yield Filter::node($lookahead->getValue(1), $this->exprDepth($token));
+                    break;
+
+                case FinderLexer::T_LEAF:
+                    yield Filter::leaf($lookahead->getValue(1), $this->exprDepth($token));
+                    break;
+
+                case FinderLexer::T_RULE:
+                    yield Filter::rule($lookahead->getValue(1), $this->exprDepth($token));
+                    break;
+            }
+        }
     }
 
     /**
@@ -152,39 +238,6 @@ class Finder implements \IteratorAggregate
     }
 
     /**
-     * @param string $query
-     * @return \Generator|Filter[]
-     * @throws UnexpectedTokenException
-     * @throws UnrecognizedTokenException
-     */
-    private function expr(string $query): \Generator
-    {
-        /**
-         * @var TokenInterface $token
-         * @var TokenInterface $lookahead
-         */
-        foreach ($this->lookahead($query) as $token => $lookahead) {
-            switch ($lookahead->getName()) {
-                case FinderLexer::T_ANY:
-                    yield Filter::any($this->exprDepth($token));
-                    break;
-
-                case FinderLexer::T_NODE:
-                    yield Filter::node($lookahead->getValue(1), $this->exprDepth($token));
-                    break;
-
-                case FinderLexer::T_LEAF:
-                    yield Filter::leaf($lookahead->getValue(1), $this->exprDepth($token));
-                    break;
-
-                case FinderLexer::T_RULE:
-                    yield Filter::rule($lookahead->getValue(1), $this->exprDepth($token));
-                    break;
-            }
-        }
-    }
-
-    /**
      * @return string
      */
     private function query(): string
@@ -193,75 +246,15 @@ class Finder implements \IteratorAggregate
     }
 
     /**
-     * @return NodeInterface[]|RuleInterface[]|LeafInterface[]|iterable|\Generator
-     * @throws UnexpectedTokenException
-     * @throws UnrecognizedTokenException
-     */
-    public function all(): iterable
-    {
-        [$expressions, $result] = [$this->expr($this->query()), $this->rules];
-
-        foreach ($expressions as $expression) {
-            $result = $this->exportEach($result, $expression, 0);
-            $result = $this->unpack($result);
-        }
-
-        return $result;
-    }
-
-    /**
-     * @param iterable $result
+     * @param iterable $nodes
+     * @param Filter $filter
+     * @param int $depth
      * @return iterable
      */
-    private function unpack(iterable $result): iterable
+    private function exportEach(iterable $nodes, Filter $filter, int $depth): iterable
     {
-        foreach ($result as $child) {
-            if ($child instanceof RuleInterface) {
-                yield from $child;
-            } else {
-                yield $child;
-            }
-        }
-    }
-
-    /**
-     * @param string $query
-     * @param \Closure $then
-     * @return Finder
-     * @throws UnexpectedTokenException
-     * @throws UnrecognizedTokenException
-     * @throws \InvalidArgumentException
-     * @throws \Railt\Lexer\Exception\BadLexemeException
-     */
-    public function when(string $query, \Closure $then): Finder
-    {
-        $nodes = \iterator_to_array($this->each($query, $then), false);
-
-        return new static(...$nodes);
-    }
-
-    /**
-     * @param string $query
-     * @param \Closure $then
-     * @return \Traversable
-     * @throws UnexpectedTokenException
-     * @throws UnrecognizedTokenException
-     */
-    private function each(string $query, \Closure $then): \Traversable
-    {
-        foreach ($this->where($query)->all() as $rule) {
-            $result = $then($rule);
-
-            switch (true) {
-                case \is_iterable($result):
-                    yield from $result;
-                    break;
-                case (bool)$result;
-                    yield $result;
-                    break;
-                default:
-                    yield $rule;
-            }
+        foreach ($nodes as $node) {
+            yield from $this->export($node, $filter, $depth);
         }
     }
 
@@ -283,16 +276,14 @@ class Finder implements \IteratorAggregate
     }
 
     /**
-     * @param iterable $nodes
+     * @param NodeInterface $node
      * @param Filter $filter
      * @param int $depth
-     * @return iterable
+     * @return bool
      */
-    private function exportEach(iterable $nodes, Filter $filter, int $depth): iterable
+    private function match(NodeInterface $node, Filter $filter, int $depth): bool
     {
-        foreach ($nodes as $node) {
-            yield from $this->export($node, $filter, $depth);
-        }
+        return $filter->match($node, $depth);
     }
 
     /**
@@ -309,31 +300,36 @@ class Finder implements \IteratorAggregate
     }
 
     /**
-     * @param NodeInterface $node
-     * @param Filter $filter
-     * @param int $depth
-     * @return bool
+     * @param iterable $result
+     * @return iterable
      */
-    private function match(NodeInterface $node, Filter $filter, int $depth): bool
+    private function unpack(iterable $result): iterable
     {
-        return $filter->match($node, $depth);
+        foreach ($result as $child) {
+            if ($child instanceof RuleInterface) {
+                yield from $child;
+            } else {
+                yield $child;
+            }
+        }
     }
 
     /**
-     * @return null|NodeInterface
-     * @throws UnexpectedTokenException
-     * @throws UnrecognizedTokenException
+     * @param string $query
+     * @return Finder
      */
-    public function first(): ?NodeInterface
+    public function where(string $query): Finder
     {
-        return $this->all()->current();
+        $this->query .= $query;
+
+        return $this;
     }
 
     /**
      * @param int $group
      * @return null|string
-     * @throws UnexpectedTokenException
-     * @throws UnrecognizedTokenException
+     * @throws InternalException
+     * @throws ParserException
      */
     public function value(int $group = 0): ?string
     {
@@ -343,9 +339,19 @@ class Finder implements \IteratorAggregate
     }
 
     /**
-     * @return \Generator
-     * @throws UnexpectedTokenException
-     * @throws UnrecognizedTokenException
+     * @return null|NodeInterface
+     * @throws InternalException
+     * @throws ParserException
+     */
+    public function first(): ?NodeInterface
+    {
+        return $this->all()->current();
+    }
+
+    /**
+     * @return \Generator|NodeInterface[]
+     * @throws InternalException
+     * @throws ParserException
      */
     public function getIterator(): \Generator
     {

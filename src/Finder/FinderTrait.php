@@ -21,8 +21,7 @@ trait FinderTrait
      * @param string $query
      * @param int|null $depth
      * @return Finder
-     * @throws \InvalidArgumentException
-     * @throws \Railt\Lexer\Exception\BadLexemeException
+     * @throws \Railt\Parser\Exception\InternalException
      */
     public function find(string $query, int $depth = null): Finder
     {
@@ -38,13 +37,11 @@ trait FinderTrait
      * @param string $query
      * @param int|null $depth
      * @return null|NodeInterface
+     * @throws \Railt\Parser\Exception\InternalException
+     * @throws \Railt\Parser\Exception\ParserException
      */
     public function first(string $query, int $depth = null): ?NodeInterface
     {
-        try {
-            return $this->find($query, $depth)->first();
-        } catch (\Throwable $e) {
-            return null;
-        }
+        return $this->find($query, $depth)->first();
     }
 }
