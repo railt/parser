@@ -12,13 +12,12 @@ namespace Railt\Parser\Ast;
 use Railt\Parser\Dumper\NodeDumperInterface;
 use Railt\Parser\Dumper\XmlDumper;
 use Railt\Parser\Environment;
-use Railt\Parser\Finder\Findable;
 use Railt\Parser\Finder\FinderTrait;
 
 /**
  * Class Node
  */
-abstract class Node implements NodeInterface, Findable
+abstract class Node implements NodeInterface
 {
     use FinderTrait;
 

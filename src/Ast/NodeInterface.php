@@ -10,11 +10,12 @@ declare(strict_types=1);
 namespace Railt\Parser\Ast;
 
 use Railt\Parser\Dumper\NodeDumperInterface;
+use Railt\Parser\Finder\Findable;
 
 /**
  * Interface NodeInterface
  */
-interface NodeInterface
+interface NodeInterface extends Findable
 {
     /**
      * @return string
