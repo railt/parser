@@ -91,8 +91,8 @@ use Railt\Parser\Rule\Terminal;
 //
 $grammar = new Grammar([
     new Concatenation(0, [1, 2, 1], 'expression'),
-    new Terminal(1, 'T_NUMBER'),
-    new Terminal(2, 'T_PLUS'),
+    new Terminal(1, 'T_NUMBER', true),
+    new Terminal(2, 'T_PLUS', true),
 ]);
 ```
 
@@ -181,7 +181,7 @@ new Repetition(<ID>, 1, -1, <ID_2>, 'repeat one or more');
 Refers to the token defined in the lexer.
 
 ```php
-$kept = new Terminal(<ID>, 'T_NUMBER');
+$kept = new Terminal(<ID>, 'T_NUMBER', true);
 
 $skipped = new Terminal(<ID>, 'T_WHITESPACE', false);
 ```
@@ -200,9 +200,9 @@ $parser = new Grammar([
     new Concatenation(0, [8, 6, 7], 'expression'),  // expression = T_NUMBER operation ( ... ) ;
     new Alternation(7, [8, 0]),                     // ( T_NUMBER | expression ) ;
     new Alternation(6, [1, 2], 'operation'),        // operation = T_PLUS | T_MINUS ;
-    new Token(8, 'T_NUMBER'),
-    new Token(1, 'T_PLUS'),
-    new Token(2, 'T_MINUS'),
+    new Token(8, 'T_NUMBER', true),
+    new Token(1, 'T_PLUS', true),
+    new Token(2, 'T_MINUS', true),
 ], 'expression');
 
 echo $parser->parse(File::fromSources('2 + 2 - 10 + 1000'));
