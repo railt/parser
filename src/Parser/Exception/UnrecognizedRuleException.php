@@ -10,9 +10,8 @@ declare(strict_types=1);
 namespace Railt\Parser\Exception;
 
 /**
- * Class UnrecognizedTokenException
+ * Class UnrecognizedRuleException
  */
-class UnrecognizedTokenException extends ParserException
+class UnrecognizedRuleException extends ParserException
 {
-
 }

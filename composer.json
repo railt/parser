@@ -2,8 +2,18 @@
     "name": "railt/parser",
     "type": "library",
     "description": "Syntactic LL(k) parser-analyzer implementation",
+    "version": "1.3.0",
     "license": "MIT",
-    "keywords": ["parser", "llk", "ll1", "lr", "slr", "language", "php", "ast"],
+    "keywords": [
+        "parser",
+        "llk",
+        "ll1",
+        "lr",
+        "slr",
+        "language",
+        "php",
+        "ast"
+    ],
     "homepage": "http://railt.org",
     "support": {
         "issues": "https://github.com/railt/railt/issues",
@@ -28,12 +38,12 @@
         "ext-spl": "*",
         "ext-pcre": "*",
         "ext-mbstring": "*",
-        "railt/io": "2.*|dev-master",
-        "railt/lexer": "2.*|dev-master"
+        "railt/io": "1.3.*|dev-master",
+        "railt/lexer": "1.3.*|dev-master"
     },
     "autoload": {
         "psr-4": {
-            "Railt\\Parser\\": "src"
+            "Railt\\": "src/"
         }
     },
     "require-dev": {
@@ -41,7 +51,7 @@
     },
     "autoload-dev": {
         "psr-4": {
-            "Railt\\Tests\\Parser\\": "tests"
+            "Railt\\Tests\\Parser\\": "tests/"
         }
     },
     "config": {

@@ -11,6 +11,11 @@
     <a href="https://raw.githubusercontent.com/railt/parser/master/LICENSE.md"><img src="https://poser.pugx.org/railt/parser/license" alt="License MIT"></a>
 </p>
 
+# Parser
+
+> Note: All questions and issues please send 
+to [https://github.com/railt/railt/issues](https://github.com/railt/railt/issues)
+
 - [Introduction](#introduction)
     - [Lexer](#lexer)
     - [Grammar](#grammar)
@@ -361,22 +366,3 @@ Allowed expressions:
 - ` ` - Whitespace indicates that the next rule can be at any nested depth.
 - `>` - Indicates that the next rule can be strictly within the specified.
 - `(N)` - Indicates that the following rule may be strictly within the rule with the N (digit) nesting.
-
-## Benchmarks
-
-- PHP 7.1 (x64 NTS)
-    - XDebug: **disabled**
-    - Opcache: **disabled**
-- Intel i7 6700k
-- 16Gb DDR4
-
-[![./resources/public/bench.png](./resources/public/bench.png)](./resources/public/bench.png)
-
-**Legend:**
-
-- Y Axis: Number of AST rules that can be processed per second.
-- X Axis: The total number of rules (and the amount of source code that is processed, including).
-
-- Red: The Railt **Railt LL(k)** parser version 1.2
-- Green: The original **Hoa LL(k)** parser version 3.17.08.08
-

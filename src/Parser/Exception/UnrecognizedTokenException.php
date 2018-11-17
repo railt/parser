@@ -7,12 +7,11 @@
  */
 declare(strict_types=1);
 
-namespace Railt\Parser\Ast;
+namespace Railt\Parser\Exception;
 
 /**
- * Interface LeafInterface
+ * Class UnrecognizedTokenException
  */
-interface LeafInterface extends NodeInterface
+class UnrecognizedTokenException extends ParserException
 {
-
 }

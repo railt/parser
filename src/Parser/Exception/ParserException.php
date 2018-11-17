@@ -9,10 +9,11 @@ declare(strict_types=1);
 
 namespace Railt\Parser\Exception;
 
-/**
- * Class UnrecognizedRuleException
- */
-class UnrecognizedRuleException extends ParserException
-{
+use Railt\Io\Exception\ExternalFileException;
 
+/**
+ * Class ParserException
+ */
+abstract class ParserException extends ExternalFileException
+{
 }

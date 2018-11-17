@@ -7,14 +7,11 @@
  */
 declare(strict_types=1);
 
-namespace Railt\Parser\Exception;
-
-use Railt\Io\Exception\ExternalFileException;
+namespace Railt\Parser\Ast;
 
 /**
- * Class ParserException
+ * Interface LeafInterface
  */
-abstract class ParserException extends ExternalFileException
+interface LeafInterface extends NodeInterface
 {
-
 }
