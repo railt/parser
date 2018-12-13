@@ -36,16 +36,6 @@ class Proxy implements ParserInterface
     }
 
     /**
-     * @param string $variable
-     * @param $value
-     * @return Environment
-     */
-    public function env(string $variable, $value): Environment
-    {
-        return $this->parent->env($variable, $value);
-    }
-
-    /**
      * @return LexerInterface
      */
     public function getLexer(): LexerInterface

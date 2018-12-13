@@ -37,31 +37,14 @@ abstract class AbstractParser implements ParserInterface
     protected $grammar;
 
     /**
-     * @var Environment
-     */
-    protected $env;
-
-    /**
      * AbstractParser constructor.
      * @param LexerInterface $lexer
      * @param GrammarInterface $grammar
-     * @param Environment|null $env
      */
-    public function __construct(LexerInterface $lexer, GrammarInterface $grammar, Environment $env = null)
+    public function __construct(LexerInterface $lexer, GrammarInterface $grammar)
     {
         $this->lexer = $lexer;
         $this->grammar = $grammar;
-        $this->env = $env ?? new Environment();
-    }
-
-    /**
-     * @param string $variable
-     * @param mixed $value
-     * @return Environment
-     */
-    public function env(string $variable, $value): Environment
-    {
-        return $this->env->share($variable, $value);
     }
 
     /**
@@ -89,7 +72,7 @@ abstract class AbstractParser implements ParserInterface
     {
         $trace = $this->trace($input);
 
-        $builder = new Builder($trace, $this->grammar, $this->env);
+        $builder = new Builder($trace, $this->grammar);
 
         return $builder->build();
     }
@@ -108,14 +91,16 @@ abstract class AbstractParser implements ParserInterface
     /**
      * @param Readable $input
      * @return iterable|TokenInterface[]
-     * @throws \Railt\Io\Exception\ExternalFileException
+     * @throws UnexpectedTokenException
      */
     private function lex(Readable $input): iterable
     {
         foreach ($this->lexer->lex($input) as $token) {
             if ($token->getName() === Unknown::T_NAME) {
-                throw (new UnexpectedTokenException(\sprintf('Unexpected token %s', $token)))
-                    ->throwsIn($input, $token->getOffset());
+                $exception = new UnexpectedTokenException(\sprintf('Unexpected token %s', $token));
+                $exception->throwsIn($input, $token->getOffset());
+
+                throw $exception;
             }
 
             yield $token;

@@ -9,7 +9,6 @@ declare(strict_types=1);
 
 namespace Railt\Parser\Ast;
 
-use Railt\Parser\Environment;
 use Railt\Parser\Exception\InternalException;
 use Railt\Parser\GrammarInterface;
 use Railt\Parser\Trace\Entry;
@@ -27,11 +26,6 @@ class Builder
     private $trace;
 
     /**
-     * @var Environment
-     */
-    private $env;
-
-    /**
      * @var GrammarInterface
      */
     private $grammar;
@@ -40,11 +34,9 @@ class Builder
      * Builder constructor.
      * @param array $trace
      * @param GrammarInterface $grammar
-     * @param Environment $env
      */
-    public function __construct(array $trace, GrammarInterface $grammar, Environment $env)
+    public function __construct(array $trace, GrammarInterface $grammar)
     {
-        $this->env = $env;
         $this->trace = $trace;
         $this->grammar = $grammar;
     }
@@ -161,7 +153,7 @@ class Builder
     {
         $class = $this->ruleOf($name);
 
-        return new $class($this->env, $name, $children, $offset);
+        return new $class($name, $children, $offset);
     }
 
     /**
@@ -182,7 +174,7 @@ class Builder
     {
         $leaf = $this->leafOf($token->getToken()->getName());
 
-        return new $leaf($this->env, $token->getToken());
+        return new $leaf($token->getToken());
     }
 
     /**

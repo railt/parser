@@ -21,7 +21,7 @@ interface RuleInterface extends NodeInterface, \Countable, \IteratorAggregate
 
     /**
      * @param int $index
-     * @return null|NodeInterface|RuleInterface|LeafInterface
+     * @return NodeInterface|RuleInterface|LeafInterface
      */
-    public function getChild(int $index): ?NodeInterface;
+    public function getChild(int $index): NodeInterface;
 }

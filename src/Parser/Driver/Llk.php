@@ -94,6 +94,7 @@ class Llk extends AbstractParser
 
     /**
      * @param Readable $input
+     * @throws \Railt\Io\Exception\ExternalFileException
      */
     private function reset(Readable $input): void
     {

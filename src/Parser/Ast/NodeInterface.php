@@ -10,12 +10,11 @@ declare(strict_types=1);
 namespace Railt\Parser\Ast;
 
 use Railt\Parser\Dumper\NodeDumperInterface;
-use Railt\Parser\Finder\Findable;
 
 /**
  * Interface NodeInterface
  */
-interface NodeInterface extends Findable
+interface NodeInterface
 {
     /**
      * @return string
@@ -49,10 +48,4 @@ interface NodeInterface extends Findable
      * @return string
      */
     public function dump(string $dumper): string;
-
-    /**
-     * @param string $name
-     * @param \Closure $then
-     */
-    public static function extend(string $name, \Closure $then): void;
 }

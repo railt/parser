@@ -9,12 +9,12 @@ declare(strict_types=1);
 
 namespace Railt\Parser\Ast;
 
-use Railt\Parser\Environment;
+use Railt\Lexer\Result\Eoi;
 
 /**
  * Class Rule
  */
-class Rule extends Node implements RuleInterface
+class Rule extends Node implements RuleInterface, \ArrayAccess
 {
     /**
      * @var array|iterable|\Traversable
@@ -23,25 +23,24 @@ class Rule extends Node implements RuleInterface
 
     /**
      * Rule constructor.
-     * @param Environment $env
      * @param string $name
      * @param array|NodeInterface[] $children
      * @param int $offset
      */
-    public function __construct(Environment $env, string $name, array $children = [], int $offset = 0)
+    public function __construct(string $name, array $children = [], int $offset = 0)
     {
-        parent::__construct($env, $name, $offset);
+        parent::__construct($name, $offset);
 
         $this->children = $children;
     }
 
     /**
      * @param int $index
-     * @return null|LeafInterface|RuleInterface|NodeInterface
+     * @return LeafInterface|RuleInterface|NodeInterface
      */
-    public function getChild(int $index): ?NodeInterface
+    public function getChild(int $index): NodeInterface
     {
-        return $this->getChildren()[$index] ?? null;
+        return $this->getChildren()[$index] ?? new Leaf(new Eoi($this->offset));
     }
 
     /**
@@ -74,30 +73,13 @@ class Rule extends Node implements RuleInterface
      */
     public function getValue(int $group = 0): ?string
     {
-        /** @var LeafInterface[] $values */
-        $values = \iterator_to_array($this->getLeaves(), false);
+        $result = '';
 
-        $values = \array_map(function (LeafInterface $leaf) use ($group): string {
-            return $leaf->getValue($group);
-        }, $values);
-
-        return \implode('', \array_filter($values));
-    }
-
-    /**
-     * @return iterable|string[]|\Generator
-     */
-    private function getLeaves(): iterable
-    {
         foreach ($this->getChildren() as $child) {
-            if ($child instanceof LeafInterface) {
-                yield $child;
-            }
-
-            if ($child instanceof RuleInterface) {
-                yield from $child->getValues();
-            }
+            $result .= $child->getValue($group);
         }
+
+        return $result;
     }
 
     /**
@@ -105,8 +87,52 @@ class Rule extends Node implements RuleInterface
      */
     public function getValues(): iterable
     {
-        foreach ($this->getLeaves() as $leaf) {
-            yield $leaf->getValue();
+        foreach ($this->getChildren() as $child) {
+            yield from $child->getValues();
         }
+    }
+
+    /**
+     * @param int $offset
+     * @return bool
+     */
+    public function offsetExists($offset): bool
+    {
+        \assert(\is_int($offset));
+
+        return isset($this->children[$offset]);
+    }
+
+    /**
+     * @param int $offset
+     * @return LeafInterface|NodeInterface|RuleInterface
+     */
+    public function offsetGet($offset): NodeInterface
+    {
+        \assert(\is_int($offset));
+
+        return $this->getChild((int)$offset);
+    }
+
+    /**
+     * @param int $offset
+     * @param mixed $value
+     */
+    public function offsetSet($offset, $value): void
+    {
+        \assert(\is_int($offset));
+        \assert($value instanceof RuleInterface);
+
+        $this->children[$offset] = $value;
+    }
+
+    /**
+     * @param int $offset
+     */
+    public function offsetUnset($offset): void
+    {
+        \assert(\is_int($offset));
+
+        unset($this->children[$offset]);
     }
 }
