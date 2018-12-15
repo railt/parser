@@ -9,8 +9,6 @@ declare(strict_types=1);
 
 namespace Railt\Parser\Ast;
 
-use Railt\Lexer\Result\Eoi;
-
 /**
  * Class Rule
  */
@@ -36,11 +34,11 @@ class Rule extends Node implements RuleInterface, \ArrayAccess
 
     /**
      * @param int $index
-     * @return LeafInterface|RuleInterface|NodeInterface
+     * @return LeafInterface|RuleInterface|NodeInterface|mixed
      */
-    public function getChild(int $index): NodeInterface
+    public function getChild(int $index)
     {
-        return $this->getChildren()[$index] ?? new Leaf(new Eoi($this->offset));
+        return $this->getChildren()[$index] ?? null;
     }
 
     /**
@@ -105,9 +103,9 @@ class Rule extends Node implements RuleInterface, \ArrayAccess
 
     /**
      * @param int $offset
-     * @return LeafInterface|NodeInterface|RuleInterface
+     * @return LeafInterface|NodeInterface|RuleInterface|mixed
      */
-    public function offsetGet($offset): NodeInterface
+    public function offsetGet($offset)
     {
         \assert(\is_int($offset));
 
@@ -121,7 +119,6 @@ class Rule extends Node implements RuleInterface, \ArrayAccess
     public function offsetSet($offset, $value): void
     {
         \assert(\is_int($offset));
-        \assert($value instanceof RuleInterface);
 
         $this->children[$offset] = $value;
     }

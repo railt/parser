@@ -39,14 +39,6 @@ abstract class Node implements NodeInterface
     }
 
     /**
-     * @return NodeInterface
-     */
-    protected function getFinderNode(): NodeInterface
-    {
-        return $this;
-    }
-
-    /**
      * @param string $name
      * @return bool
      */

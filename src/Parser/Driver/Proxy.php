@@ -12,7 +12,6 @@ namespace Railt\Parser\Driver;
 use Railt\Io\Readable;
 use Railt\Lexer\LexerInterface;
 use Railt\Parser\Ast\RuleInterface;
-use Railt\Parser\Environment;
 use Railt\Parser\GrammarInterface;
 use Railt\Parser\ParserInterface;
 

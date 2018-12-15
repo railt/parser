@@ -15,7 +15,6 @@ use Railt\Lexer\Result\Unknown;
 use Railt\Lexer\TokenInterface;
 use Railt\Parser\Ast\Builder;
 use Railt\Parser\Ast\RuleInterface;
-use Railt\Parser\Environment;
 use Railt\Parser\Exception\UnexpectedTokenException;
 use Railt\Parser\GrammarInterface;
 use Railt\Parser\ParserInterface;

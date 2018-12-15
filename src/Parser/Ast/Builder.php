@@ -147,42 +147,28 @@ class Builder
      * @param string $name
      * @param array $children
      * @param int $offset
-     * @return RuleInterface
+     * @return Rule|mixed
+     * @throws \LogicException
      */
-    private function rule(string $name, array $children, int $offset): RuleInterface
+    protected function rule(string $name, array $children, int $offset)
     {
-        $class = $this->ruleOf($name);
+        $rule = new Rule($name, $children, $offset);
 
-        return new $class($name, $children, $offset);
-    }
+        $delegate = $this->grammar->delegate($name);
 
-    /**
-     * @param string $name
-     * @return string|RuleInterface
-     */
-    protected function ruleOf(string $name): string
-    {
-        /** @var Rule $class */
-        return $this->grammar->delegate($name) ?? Rule::class;
+        try {
+            return $delegate ? new $delegate($rule) : $rule;
+        } catch (\TypeError $e) {
+            throw new \LogicException('Error while delegate initialization: ' . $e->getMessage());
+        }
     }
 
     /**
      * @param Token $token
      * @return LeafInterface
      */
-    private function leaf(Token $token): LeafInterface
+    protected function leaf(Token $token): LeafInterface
     {
-        $leaf = $this->leafOf($token->getToken()->getName());
-
-        return new $leaf($token->getToken());
-    }
-
-    /**
-     * @param string $token
-     * @return string
-     */
-    protected function leafOf(string $token): string
-    {
-        return $this->grammar->delegate($token) ?? Leaf::class;
+        return new Leaf($token->getToken());
     }
 }
