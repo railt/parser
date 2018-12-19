@@ -35,7 +35,7 @@ interface GrammarInterface
     public function fetch($rule): Rule;
 
     /**
-     * @return iterable|string[]|Delegate[]
+     * @return iterable|string[]
      */
     public function getDelegates(): iterable;
 
@@ -43,4 +43,17 @@ interface GrammarInterface
      * @return iterable|Rule[]
      */
     public function getRules(): iterable;
+
+    /**
+     * @param Rule $rule
+     * @return mixed
+     */
+    public function addRule(Rule $rule): self;
+
+    /**
+     * @param string $key
+     * @param string $value
+     * @return GrammarInterface
+     */
+    public function addDelegate(string $key, string $value): self;
 }

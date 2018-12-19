@@ -74,7 +74,9 @@ class Rule extends Node implements RuleInterface, \ArrayAccess
         $result = '';
 
         foreach ($this->getChildren() as $child) {
-            $result .= $child->getValue($group);
+            if (\method_exists($child, 'getValue')) {
+                $result .= $child->getValue($group);
+            }
         }
 
         return $result;

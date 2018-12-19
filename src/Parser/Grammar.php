@@ -29,14 +29,14 @@ class Grammar implements GrammarInterface
     private $root;
 
     /**
-     * @var array|string[]|Delegate[]
+     * @var array|string[]
      */
     private $delegates = [];
 
     /**
      * Grammar constructor.
      * @param array|Rule[] $rules
-     * @param array|string[]|Delegate[] $delegates
+     * @param array|string[] $delegates
      * @param string|int|null $root
      */
     public function __construct(array $rules = [], $root = null, array $delegates = [])

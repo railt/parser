@@ -15,9 +15,11 @@ use Railt\Lexer\Result\Unknown;
 use Railt\Lexer\TokenInterface;
 use Railt\Parser\Ast\Builder;
 use Railt\Parser\Ast\RuleInterface;
+use Railt\Parser\Exception\GrammarException;
 use Railt\Parser\Exception\UnexpectedTokenException;
 use Railt\Parser\GrammarInterface;
 use Railt\Parser\ParserInterface;
+use Railt\Parser\Rule\Rule;
 use Railt\Parser\TokenStream\TokenStream;
 
 /**
@@ -44,6 +46,47 @@ abstract class AbstractParser implements ParserInterface
     {
         $this->lexer = $lexer;
         $this->grammar = $grammar;
+    }
+
+    /**
+     * @param string $ruleId
+     * @param \Closure $then
+     * @return AbstractParser|$this
+     * @throws GrammarException
+     */
+    public function extend(string $ruleId, \Closure $then): ParserInterface
+    {
+        $maxId = \count($this->grammar->getRules()) - 1;
+
+        $result = $then($this->grammar->fetch($ruleId), $maxId);
+
+        if ($result instanceof \Generator) {
+            while ($result->valid()) {
+                [$key, $value] = [$result->key(), $result->current()];
+
+                switch (true) {
+                    case $value instanceof Rule:
+                        $this->grammar->addRule($value);
+                        $value = $value->getName();
+                        break;
+
+                    case \is_string($key) && \is_string($value):
+                        if (! \class_exists($value)) {
+                            throw new GrammarException('Delegate class ' . $value . '::class not found');
+                        }
+
+                        $this->grammar->addDelegate($key, $value);
+                        break;
+
+                    default:
+                        throw new GrammarException('Bad parser extension generator arguments');
+                }
+
+                $result->send($value);
+            }
+        }
+
+        return $this;
     }
 
     /**
@@ -82,7 +125,7 @@ abstract class AbstractParser implements ParserInterface
      * @return TokenStream
      * @throws \Railt\Io\Exception\ExternalFileException
      */
-    protected function stream(Readable $input, int $size = 1024): TokenStream
+    protected function stream(Readable $input, int $size = \PHP_INT_MAX): TokenStream
     {
         return new TokenStream($this->lex($input), $size);
     }
