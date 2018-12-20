@@ -159,7 +159,8 @@ class Builder
         try {
             return $delegate ? new $delegate($rule) : $rule;
         } catch (\TypeError $e) {
-            throw new \LogicException('Error while delegate initialization: ' . $e->getMessage());
+            $error = \sprintf('Error while %s initialization: %s', $delegate, $e->getMessage());
+            throw new \LogicException($error);
         }
     }
 
