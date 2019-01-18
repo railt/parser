@@ -11,7 +11,7 @@ namespace Railt\Parser\Driver;
 
 use Railt\Io\Readable;
 use Railt\Lexer\LexerInterface;
-use Railt\Lexer\Result\Unknown;
+use Railt\Lexer\Token\Unknown;
 use Railt\Lexer\TokenInterface;
 use Railt\Parser\Ast\Builder;
 use Railt\Parser\Ast\RuleInterface;
@@ -21,6 +21,7 @@ use Railt\Parser\GrammarInterface;
 use Railt\Parser\ParserInterface;
 use Railt\Parser\Rule\Rule;
 use Railt\Parser\TokenStream\TokenStream;
+use Railt\Parser\Trace\TraceItem;
 
 /**
  * Class AbstractParser
@@ -47,6 +48,12 @@ abstract class AbstractParser implements ParserInterface
         $this->lexer = $lexer;
         $this->grammar = $grammar;
     }
+
+    /**
+     * @param Readable $input
+     * @return iterable|TraceItem[]
+     */
+    abstract public function trace(Readable $input): iterable;
 
     /**
      * @param string $ruleId
@@ -109,6 +116,7 @@ abstract class AbstractParser implements ParserInterface
      * @param Readable $input
      * @return RuleInterface
      * @throws \Railt\Parser\Exception\InternalException
+     * @throws \LogicException
      */
     public function parse(Readable $input): RuleInterface
     {

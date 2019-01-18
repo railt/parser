@@ -44,6 +44,7 @@ class Builder
     /**
      * @return RuleInterface
      * @throws InternalException
+     * @throws \LogicException
      */
     public function build(): RuleInterface
     {
@@ -63,6 +64,7 @@ class Builder
      * @param int $i Current trace index.
      * @param array &$children Collected children.
      * @return Node|int
+     * @throws \LogicException
      */
     protected function buildTree(int $i = 0, array &$children = [])
     {
@@ -135,7 +137,7 @@ class Builder
                     continue;
                 }
 
-                $children[] = $this->leaf($trace);
+                $children[] = new Leaf($trace->getToken());
                 ++$i;
             }
         }
@@ -152,24 +154,13 @@ class Builder
      */
     protected function rule(string $name, array $children, int $offset)
     {
-        $rule = new Rule($name, $children, $offset);
-
-        $delegate = $this->grammar->delegate($name);
+        $delegate = $this->grammar->delegate($name) ?? Rule::class;
 
         try {
-            return $delegate ? new $delegate($rule) : $rule;
+            return new $delegate($name, $children, $offset);
         } catch (\TypeError $e) {
             $error = \sprintf('Error while %s initialization: %s', $delegate, $e->getMessage());
             throw new \LogicException($error);
         }
-    }
-
-    /**
-     * @param Token $token
-     * @return LeafInterface
-     */
-    protected function leaf(Token $token): LeafInterface
-    {
-        return new Leaf($token->getToken());
     }
 }
