@@ -13,7 +13,6 @@ use Railt\Parser\ParserInterface;
 
 /**
  * Class Stateful
- * @deprecated Use Proxy parser instead
  */
 abstract class Stateful extends Proxy
 {
