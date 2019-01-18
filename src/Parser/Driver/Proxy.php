@@ -10,7 +10,9 @@ declare(strict_types=1);
 namespace Railt\Parser\Driver;
 
 use Railt\Io\Readable;
+use Railt\Lexer\LexerInterface;
 use Railt\Parser\Ast\RuleInterface;
+use Railt\Parser\GrammarInterface;
 use Railt\Parser\ParserInterface;
 
 /**
@@ -33,31 +35,36 @@ class Proxy implements ParserInterface
     }
 
     /**
+     * @return LexerInterface
+     */
+    public function getLexer(): LexerInterface
+    {
+        return $this->parent->getLexer();
+    }
+
+    /**
+     * @return GrammarInterface
+     */
+    public function getGrammar(): GrammarInterface
+    {
+        return $this->parent->getGrammar();
+    }
+
+    /**
+     * @param Readable $input
+     * @return iterable
+     */
+    public function trace(Readable $input): iterable
+    {
+        return $this->parent->trace($input);
+    }
+
+    /**
      * @param Readable $input
      * @return RuleInterface
      */
     public function parse(Readable $input): RuleInterface
     {
         return $this->parent->parse($input);
-    }
-
-    /**
-     * @param string $rule
-     * @param \Closure $then
-     * @return ParserInterface
-     */
-    public function extend(string $rule, \Closure $then): ParserInterface
-    {
-        return $this->parent->extend($rule, $then);
-    }
-
-    /**
-     * @param string $name
-     * @param array $arguments
-     * @return mixed
-     */
-    public function __call(string $name, array $arguments = [])
-    {
-        return $this->parent->$name(...$arguments);
     }
 }

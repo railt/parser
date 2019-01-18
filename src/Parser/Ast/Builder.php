@@ -1,6 +1,6 @@
 <?php
 /**
- * This file is part of compiler package.
+ * This file is part of Railt package.
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -147,28 +147,21 @@ class Builder
      * @param string $name
      * @param array $children
      * @param int $offset
-     * @return Rule|mixed
-     * @throws \LogicException
+     * @return RuleInterface
      */
-    protected function rule(string $name, array $children, int $offset)
+    private function rule(string $name, array $children, int $offset): RuleInterface
     {
-        $rule = new Rule($name, $children, $offset);
+        /** @var Rule $class */
+        $class = $this->grammar->delegate($name) ?? Rule::class;
 
-        $delegate = $this->grammar->delegate($name);
-
-        try {
-            return $delegate ? new $delegate($rule) : $rule;
-        } catch (\TypeError $e) {
-            $error = \sprintf('Error while %s initialization: %s', $delegate, $e->getMessage());
-            throw new \LogicException($error);
-        }
+        return new $class($name, $children, $offset);
     }
 
     /**
      * @param Token $token
      * @return LeafInterface
      */
-    protected function leaf(Token $token): LeafInterface
+    private function leaf(Token $token): LeafInterface
     {
         return new Leaf($token->getToken());
     }

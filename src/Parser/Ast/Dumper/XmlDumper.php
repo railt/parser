@@ -7,7 +7,7 @@
  */
 declare(strict_types=1);
 
-namespace Railt\Parser\Dumper;
+namespace Railt\Parser\Ast\Dumper;
 
 use Railt\Parser\Ast\LeafInterface;
 use Railt\Parser\Ast\NodeInterface;
@@ -18,14 +18,7 @@ use Railt\Parser\Ast\RuleInterface;
  */
 class XmlDumper implements NodeDumperInterface
 {
-    /**
-     * @var string
-     */
     private const OUTPUT_CHARSET = 'UTF-8';
-
-    /**
-     * @var string
-     */
     private const OUTPUT_XML_VERSION = '1.1';
 
     /**
@@ -39,18 +32,16 @@ class XmlDumper implements NodeDumperInterface
     protected $indention = 4;
 
     /**
-     * @var NodeInterface|mixed
+     * @var NodeInterface
      */
     private $ast;
 
     /**
-     * XmlDumper constructor.
-     * @param mixed|NodeInterface $ast
+     * NodeDumper constructor.
+     * @param NodeInterface $ast
      */
-    public function __construct($ast)
+    public function __construct(NodeInterface $ast)
     {
-        \assert(\class_exists(\DOMDocument::class));
-
         $this->ast = $ast;
     }
 
@@ -71,34 +62,22 @@ class XmlDumper implements NodeDumperInterface
 
         $dom->formatOutput = true;
 
-        $root = $dom->createElement($this->getRootNodeName());
+        $root = $dom->createElement('Ast');
         $root->appendChild($this->renderAsXml($dom, $this->ast));
-
-        if (\count($root->childNodes) === 1) {
-            return $dom->saveXML($root->firstChild);
-        }
 
         return $dom->saveXML($root);
     }
 
     /**
-     * @return string
-     */
-    private function getRootNodeName(): string
-    {
-        return $this->getName($this->ast);
-    }
-
-    /**
      * @param \DOMDocument $root
-     * @param NodeInterface|LeafInterface|RuleInterface|mixed $ast
+     * @param NodeInterface|LeafInterface|RuleInterface $ast
      * @return \DOMElement
      */
-    private function renderAsXml(\DOMDocument $root, $ast): \DOMElement
+    private function renderAsXml(\DOMDocument $root, NodeInterface $ast): \DOMElement
     {
         if ($ast instanceof LeafInterface) {
             $token = $this->createElement($root, $this->getName($ast), $ast->getValue());
-            $this->renderAttributes($root, $token, $ast);
+            $this->renderAttributes($token, $ast);
 
             if (\count($ast->getValues()) > 1) {
                 foreach ($ast->getValues() as $i => $value) {
@@ -114,7 +93,7 @@ class XmlDumper implements NodeDumperInterface
         }
 
         $node = $this->createElement($root, $this->getName($ast));
-        $this->renderAttributes($root, $node, $ast);
+        $this->renderAttributes($node, $ast);
 
         if ($ast instanceof RuleInterface) {
             /** @var NodeInterface $child */
@@ -138,6 +117,7 @@ class XmlDumper implements NodeDumperInterface
             case $value === null:
                 return $root->createElement($name);
 
+
             case $value === $this->escape($value):
                 return $root->createElement($name, $value);
 
@@ -154,13 +134,11 @@ class XmlDumper implements NodeDumperInterface
      */
     private function getName($node): string
     {
-        $name = \basename(\str_replace('\\', '/', \get_class($node)));
-
-        $result = $node instanceof NodeInterface
-            ? \preg_replace('/\W+/u', '', $node->getName())
-            : $name;
-
-        return $this->escape($result);
+        return $this->escape(
+            $node instanceof NodeInterface
+                ? \preg_replace('/\W+/u', '', $node->getName())
+                : \class_basename($node)
+        );
     }
 
     /**
@@ -173,67 +151,16 @@ class XmlDumper implements NodeDumperInterface
     }
 
     /**
-     * @param \DOMDocument $root
      * @param \DOMElement $node
-     * @param NodeInterface|mixed $ast
+     * @param NodeInterface $ast
      */
-    private function renderAttributes(\DOMDocument $root, \DOMElement $node, $ast): void
+    private function renderAttributes(\DOMElement $node, NodeInterface $ast): void
     {
         $reflection = new \ReflectionObject($ast);
 
-        /** @var \ReflectionProperty[] $properties */
-        $properties = \array_merge(
-            $reflection->getProperties(\ReflectionProperty::IS_PROTECTED),
-            $reflection->getProperties(\ReflectionProperty::IS_PUBLIC)
-        );
-
-        foreach ($properties as $property) {
+        foreach ($reflection->getProperties(\ReflectionProperty::IS_PROTECTED) as $property) {
             $property->setAccessible(true);
-
-            if ($property->isStatic()) {
-                continue;
-            }
-
-            $value = $property->getValue($ast);
-
-            if (\is_array($value)) {
-                foreach ($value as $key => $child) {
-                    if (\is_object($child)) {
-                        $node->appendChild($this->renderAsXml($root, $child));
-                    } else {
-                        $this->renderAttribute($node, $property->getName() . ':' . $key, $this->value($child));
-                    }
-                }
-                continue;
-            }
-
-            if (\is_object($value)) {
-                $node->appendChild($this->renderAsXml($root, $value));
-                continue;
-            }
-
-            $this->renderAttribute($node, $property->getName(), $this->value($value));
-        }
-    }
-
-    /**
-     * @param mixed $value
-     * @return string
-     */
-    private function value($value): string
-    {
-        switch (true) {
-            case \is_scalar($value):
-                return (string)$value;
-
-            case \is_array($value):
-                return 'array(' . \count($value) . ') { ... }';
-
-            case \is_object($value):
-                return \get_class($value) . '::class';
-
-            default:
-                return $this->inline(\print_r($value, true));
+            $this->renderAttribute($node, $property->getName(), (string)$property->getValue($ast));
         }
     }
 
@@ -244,7 +171,7 @@ class XmlDumper implements NodeDumperInterface
      */
     private function renderAttribute(\DOMElement $node, string $name, string $value): void
     {
-        $node->setAttribute($this->escape($name), $this->escape($value));
+        $node->setAttribute(\htmlspecialchars($name), \htmlspecialchars((string)$value));
     }
 
     /**

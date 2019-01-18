@@ -12,7 +12,7 @@ namespace Railt\Parser\Ast;
 /**
  * Interface RuleInterface
  */
-interface RuleInterface extends NodeInterface, \Countable, \IteratorAggregate
+interface RuleInterface extends NodeInterface, Findable, \Countable, \IteratorAggregate
 {
     /**
      * @return iterable|NodeInterface[]|RuleInterface[]|LeafInterface[]
@@ -21,7 +21,7 @@ interface RuleInterface extends NodeInterface, \Countable, \IteratorAggregate
 
     /**
      * @param int $index
-     * @return NodeInterface|RuleInterface|LeafInterface|mixed
+     * @return null|NodeInterface|RuleInterface|LeafInterface
      */
-    public function getChild(int $index);
+    public function getChild(int $index): ?NodeInterface;
 }
