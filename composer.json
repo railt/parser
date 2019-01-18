@@ -33,17 +33,20 @@
         "source": "https://github.com/railt/parser"
     },
     "require": {
-        "php": ">=7.1.3",
+        "php": "^7.1.3",
         "ext-spl": "*",
         "ext-pcre": "*",
         "ext-mbstring": "*",
-        "railt/io": "1.4.*|1.4.x-dev",
-        "railt/lexer": "1.4.*|1.4.x-dev"
+        "railt/io": "~1.3.0|1.3.x-dev",
+        "railt/lexer": "~1.3.0|1.3.x-dev"
     },
     "autoload": {
         "psr-4": {
             "Railt\\": "src/"
-        }
+        },
+        "files": [
+            "src/Parser/helpers.php"
+        ]
     },
     "require-dev": {
         "phpunit/phpunit": "^6.5"
