@@ -1,6 +1,6 @@
 <?php
 /**
- * This file is part of compiler package.
+ * This file is part of Railt package.
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -13,6 +13,7 @@ use Railt\Parser\Exception\InternalException;
 use Railt\Parser\GrammarInterface;
 use Railt\Parser\Trace\Entry;
 use Railt\Parser\Trace\Escape;
+use Railt\Parser\Trace\Token;
 
 /**
  * Class Builder
@@ -31,7 +32,6 @@ class Builder
 
     /**
      * Builder constructor.
-     *
      * @param array $trace
      * @param GrammarInterface $grammar
      */
@@ -44,7 +44,6 @@ class Builder
     /**
      * @return RuleInterface
      * @throws InternalException
-     * @throws \LogicException
      */
     public function build(): RuleInterface
     {
@@ -64,7 +63,6 @@ class Builder
      * @param int $i Current trace index.
      * @param array &$children Collected children.
      * @return Node|int
-     * @throws \LogicException
      */
     protected function buildTree(int $i = 0, array &$children = [])
     {
@@ -137,7 +135,7 @@ class Builder
                     continue;
                 }
 
-                $children[] = new Leaf($trace->getToken());
+                $children[] = $this->leaf($trace);
                 ++$i;
             }
         }
@@ -149,18 +147,22 @@ class Builder
      * @param string $name
      * @param array $children
      * @param int $offset
-     * @return Rule|mixed
-     * @throws \LogicException
+     * @return RuleInterface
      */
-    protected function rule(string $name, array $children, int $offset)
+    private function rule(string $name, array $children, int $offset): RuleInterface
     {
-        $delegate = $this->grammar->delegate($name) ?? Rule::class;
+        /** @var Rule $class */
+        $class = $this->grammar->delegate($name) ?? Rule::class;
 
-        try {
-            return new $delegate($name, $children, $offset);
-        } catch (\TypeError $e) {
-            $error = \sprintf('Error while %s initialization: %s', $delegate, $e->getMessage());
-            throw new \LogicException($error);
-        }
+        return new $class($name, $children, $offset);
+    }
+
+    /**
+     * @param Token $token
+     * @return LeafInterface
+     */
+    private function leaf(Token $token): LeafInterface
+    {
+        return new Leaf($token->getToken());
     }
 }

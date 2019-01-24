@@ -39,7 +39,6 @@ class Buffer implements \Iterator, \Countable
 
     /**
      * Buffer constructor.
-     *
      * @param iterable $iterator
      * @param int $size
      */

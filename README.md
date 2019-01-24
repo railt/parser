@@ -3,8 +3,8 @@
 </p>
 
 <p align="center">
-    <a href="https://travis-ci.org/railt/parser"><img src="https://travis-ci.org/railt/parser.svg?branch=1.4.x" alt="Travis CI" /></a>
-    <a href="https://scrutinizer-ci.com/g/railt/parser/?branch=1.4.x"><img src="https://scrutinizer-ci.com/g/railt/parser/badges/quality-score.png?b=1.4.x" alt="Scrutinizer CI" /></a>
+    <a href="https://travis-ci.org/railt/parser"><img src="https://travis-ci.org/railt/parser.svg?branch=1.3.x" alt="Travis CI" /></a>
+    <a href="https://scrutinizer-ci.com/g/railt/parser/?branch=1.3.x"><img src="https://scrutinizer-ci.com/g/railt/parser/badges/quality-score.png?b=master" alt="Scrutinizer CI" /></a>
     <a href="https://packagist.org/packages/railt/parser"><img src="https://poser.pugx.org/railt/parser/version" alt="Latest Stable Version"></a>
     <a href="https://packagist.org/packages/railt/parser"><img src="https://poser.pugx.org/railt/parser/v/unstable" alt="Latest Unstable Version"></a>
     <a href="https://raw.githubusercontent.com/railt/parser/master/LICENSE.md"><img src="https://poser.pugx.org/railt/parser/license" alt="License MIT"></a>
@@ -295,8 +295,73 @@ And now, as an **operation** rule, we get the instance of `Operation` class:
 ```php
 $ast = (new Parser($lexer, $grammar))->parse(File::fromSources('2 + 2'));
 
-$operation = $ast->getChild(0); // Operation::class
+$operation = $ast->first('operation'); // Operation::class
 
 $operation->isPlus();   // true
 $operation->isMinus();  // false
 ```
+
+### Environment
+
+You can also cast data and the external environment (or context) 
+inside each rule using the environment class:
+
+```php
+$sources = File::fromSources('...');
+
+$parser->env(File::class, $source); // Share environment variable
+
+class DelegateExample extends Rule 
+{
+    public function getFile(): File
+    {
+        return $this->env(File::class);
+    }
+}
+```
+
+## Finder
+
+For a convenient search by AST structure, we can take 
+advantage of the capabilities of the `Finder`. This class provides a 
+quick lazy API for querying and finding the right data 
+inside an Abstract Syntax Tree.
+
+Each rule already has the ability to execute the requested 
+query using the `find` method:
+
+```php
+$ast = $parser->parse(File::fromSources('2 + (3 * 4 + (42 - 10))'));
+
+echo $ast->find('T_DIGIT')->first(); 
+// T_DIGIT "2"
+
+foreach ($ast->find('group T_DIGIT') as $digit) {
+    echo $digit;
+    // T_DIGIT "3"
+    // T_DIGIT "4"
+    // T_DIGIT "42"
+    // T_DIGIT "10"
+}
+
+
+echo $ast->find('group > group operation')->first(); 
+// T_MINUS "-"
+
+
+foreach ($ast->find('group > T_DIGIT') as $digit) {
+    echo $digit;
+    // T_DIGIT "3"
+    // T_DIGIT "4"
+}
+```
+
+Allowed expressions:
+
+- `name` - Defines any node with the specified name.
+- `:name` - Defines only tokens (`LeafInterface`) with the specified name.
+- `#name` - Defines only rules (`RuleInterface`) with the specified name.
+- `*` - Any rule
+- ` ` - Whitespace indicates that the next rule can be at any nested depth.
+- `>` - Indicates that the next rule can be strictly within the specified.
+- `(N)` - Indicates that the following rule may be strictly within the rule with the N (digit) nesting.

@@ -23,7 +23,6 @@ class Leaf extends Node implements LeafInterface
 
     /**
      * Leaf constructor.
-     *
      * @param TokenInterface $token
      */
     public function __construct(TokenInterface $token)

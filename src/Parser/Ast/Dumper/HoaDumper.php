@@ -7,7 +7,7 @@
  */
 declare(strict_types=1);
 
-namespace Railt\Parser\Dumper;
+namespace Railt\Parser\Ast\Dumper;
 
 use Railt\Parser\Ast\LeafInterface;
 use Railt\Parser\Ast\NodeInterface;
@@ -25,7 +25,6 @@ class HoaDumper implements NodeDumperInterface
 
     /**
      * HoaDumper constructor.
-     *
      * @param RuleInterface $ast
      */
     public function __construct(RuleInterface $ast)

@@ -28,7 +28,6 @@ class Repetition extends Rule
 
     /**
      * Repetition constructor.
-     *
      * @param string|int $name Rule name.
      * @param int $min Minimum bound.
      * @param int $max Maximum bound.

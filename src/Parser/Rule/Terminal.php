@@ -34,7 +34,6 @@ class Terminal extends Rule
 
     /**
      * Token constructor.
-     *
      * @param string|int $name Name.
      * @param string $tokenName Token name.
      * @param bool $kept Whether the token is kept or not in the AST.

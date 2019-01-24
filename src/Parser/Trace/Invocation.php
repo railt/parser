@@ -11,7 +11,6 @@ namespace Railt\Parser\Trace;
 
 /**
  * Class Invocation
- * @internal the class is part of the internal logic
  */
 abstract class Invocation extends TraceItem
 {
@@ -38,7 +37,6 @@ abstract class Invocation extends TraceItem
 
     /**
      * Invocation constructor.
-     *
      * @param string|int $rule
      * @param int $state
      * @param array|null $todo

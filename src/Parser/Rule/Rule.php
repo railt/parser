@@ -52,7 +52,6 @@ abstract class Rule
 
     /**
      * Rule constructor.
-     *
      * @param string|int $name Rule name.
      * @param int|int[]|string|string[] $children Children.
      * @param string $nodeId Node ID.
@@ -62,50 +61,6 @@ abstract class Rule
         $this->name = $name;
         $this->children = $children;
         $this->nodeId = $nodeId;
-    }
-
-    /**
-     * @param int|string $child
-     * @param int|string $relation
-     * @return Rule
-     */
-    public function addAfter($child, $relation): self
-    {
-        $result = [];
-
-        foreach ($this->children as $haystack) {
-            $result[] = $haystack;
-
-            if ($haystack === $child) {
-                $result[] = $relation;
-            }
-        }
-
-        $this->children = $result;
-
-        return $this;
-    }
-
-    /**
-     * @param int|string $child
-     * @param int|string $relation
-     * @return Rule
-     */
-    public function addBefore($child, $relation): self
-    {
-        $result = [];
-
-        foreach ($this->children as $haystack) {
-            if ($haystack === $child) {
-                $result[] = $relation;
-            }
-
-            $result[] = $haystack;
-        }
-
-        $this->children = $result;
-
-        return $this;
     }
 
     /**

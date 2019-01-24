@@ -12,7 +12,7 @@ namespace Railt\Parser\Ast;
 /**
  * Class Rule
  */
-class Rule extends Node implements RuleInterface, \ArrayAccess
+class Rule extends Node implements RuleInterface
 {
     /**
      * @var array|iterable|\Traversable
@@ -21,7 +21,6 @@ class Rule extends Node implements RuleInterface, \ArrayAccess
 
     /**
      * Rule constructor.
-     *
      * @param string $name
      * @param array|NodeInterface[] $children
      * @param int $offset
@@ -34,6 +33,23 @@ class Rule extends Node implements RuleInterface, \ArrayAccess
     }
 
     /**
+     * @param int $index
+     * @return null|NodeInterface
+     */
+    public function getChild(int $index): ?NodeInterface
+    {
+        return $this->getChildren()[$index] ?? null;
+    }
+
+    /**
+     * @return iterable|NodeInterface[]
+     */
+    public function getChildren(): iterable
+    {
+        return $this->children;
+    }
+
+    /**
      * @return int
      */
     public function count(): int
@@ -42,98 +58,11 @@ class Rule extends Node implements RuleInterface, \ArrayAccess
     }
 
     /**
-     * @return iterable|LeafInterface[]|RuleInterface[]|NodeInterface[]
-     */
-    public function getChildren(): iterable
-    {
-        return $this->children;
-    }
-
-    /**
-     * @return \Traversable|LeafInterface[]|RuleInterface[]
+     * @return \Traversable
      */
     public function getIterator(): \Traversable
     {
         yield from $this->getChildren();
-    }
-
-    /**
-     * @param int $group
-     * @return null|string
-     */
-    public function getValue(int $group = 0): ?string
-    {
-        $result = '';
-
-        foreach ($this->getChildren() as $child) {
-            if (\method_exists($child, 'getValue')) {
-                $result .= $child->getValue($group);
-            }
-        }
-
-        return $result;
-    }
-
-    /**
-     * @return iterable|string[]|\Generator
-     */
-    public function getValues(): iterable
-    {
-        foreach ($this->getChildren() as $child) {
-            yield from $child->getValues();
-        }
-    }
-
-    /**
-     * @param int $offset
-     * @return bool
-     */
-    public function offsetExists($offset): bool
-    {
-        \assert(\is_int($offset));
-
-        return isset($this->children[$offset]);
-    }
-
-    /**
-     * @param int $offset
-     * @return LeafInterface|NodeInterface|RuleInterface|mixed
-     */
-    public function offsetGet($offset)
-    {
-        \assert(\is_int($offset));
-
-        return $this->getChild((int)$offset);
-    }
-
-    /**
-     * @param int $index
-     * @return LeafInterface|RuleInterface|NodeInterface|mixed
-     */
-    public function getChild(int $index)
-    {
-        return $this->getChildren()[$index] ?? null;
-    }
-
-    /**
-     * @param int $offset
-     * @param mixed $value
-     */
-    public function offsetSet($offset, $value): void
-    {
-        \assert(\is_int($offset));
-
-        $this->children[$offset] = $value;
-    }
-
-    /**
-     * @param int $offset
-     */
-    public function offsetUnset($offset): void
-    {
-        \assert(\is_int($offset));
-
-        unset($this->children[$offset]);
     }
 
     /**
@@ -154,9 +83,11 @@ class Rule extends Node implements RuleInterface, \ArrayAccess
     public function find(string $name, int $depth = null): iterable
     {
         $depth = \max(0, $depth ?? \PHP_INT_MAX);
+
         if ($this->getName() === $name) {
             yield $this;
         }
+
         if ($depth > 0) {
             yield from $this->findChildren($this, $name, $depth);
         }
@@ -174,8 +105,25 @@ class Rule extends Node implements RuleInterface, \ArrayAccess
             if ($child->getName() === $name) {
                 yield $child;
             }
+
             if ($depth > 1 && $child instanceof RuleInterface) {
                 yield from $this->findChildren($child, $name, $depth - 1);
+            }
+        }
+    }
+
+    /**
+     * @return iterable|string[]|\Generator
+     */
+    public function getValues(): iterable
+    {
+        foreach ($this->getChildren() as $child) {
+            if ($child instanceof LeafInterface) {
+                yield $child;
+            }
+
+            if ($child instanceof RuleInterface) {
+                yield from $child->getValues();
             }
         }
     }

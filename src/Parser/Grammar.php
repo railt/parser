@@ -9,7 +9,6 @@ declare(strict_types=1);
 
 namespace Railt\Parser;
 
-use Railt\Parser\Ast\Delegate;
 use Railt\Parser\Exception\GrammarException;
 use Railt\Parser\Rule\Rule;
 
@@ -35,7 +34,6 @@ class Grammar implements GrammarInterface
 
     /**
      * Grammar constructor.
-     *
      * @param array|Rule[] $rules
      * @param array|string[] $delegates
      * @param string|int|null $root
@@ -44,6 +42,7 @@ class Grammar implements GrammarInterface
     {
         $this->addRules(\array_values($rules));
         $this->addDelegates($delegates);
+
         $this->root = $root;
     }
 
@@ -143,7 +142,7 @@ class Grammar implements GrammarInterface
     }
 
     /**
-     * @return iterable|string[]|Delegate[]
+     * @return iterable|string[]
      */
     public function getDelegates(): iterable
     {
