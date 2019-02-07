@@ -9,7 +9,6 @@ declare(strict_types=1);
 
 namespace Railt\Parser\Ast;
 
-use Railt\Parser\Exception\InternalException;
 use Railt\Parser\GrammarInterface;
 use Railt\Parser\Trace\Entry;
 use Railt\Parser\Trace\Escape;
@@ -42,19 +41,12 @@ class Builder
     }
 
     /**
-     * @return RuleInterface
-     * @throws InternalException
+     * @return RuleInterface|mixed
      * @throws \LogicException
      */
-    public function build(): RuleInterface
+    public function build()
     {
-        $result = $this->buildTree();
-
-        if (! $result instanceof RuleInterface) {
-            throw new InternalException('Cannot build AST, the trace is corrupted');
-        }
-
-        return $result;
+        return $this->buildTree();
     }
 
     /**
