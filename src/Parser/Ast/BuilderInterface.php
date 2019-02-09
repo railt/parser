@@ -7,13 +7,15 @@
  */
 declare(strict_types=1);
 
-namespace Railt\Parser\Driver;
-
-use Railt\Parser\Parser;
+namespace Railt\Parser\Ast;
 
 /**
- * @deprecated since Railt 1.4, use Railt\Parser\Parser instead.
+ * Interface BuilderInterface
  */
-class Llk extends Parser
+interface BuilderInterface
 {
+    /**
+     * @return mixed
+     */
+    public function build();
 }
