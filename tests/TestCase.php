@@ -21,6 +21,7 @@ abstract class TestCase extends BaseTestCase
      * @param string $expected
      * @param null|NodeInterface $actual
      * @throws \PHPUnit\Framework\Exception
+     * @throws \SebastianBergmann\RecursionContext\InvalidArgumentException
      */
     protected function assertAst(string $expected, ?NodeInterface $actual): void
     {

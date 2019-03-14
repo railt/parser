@@ -13,16 +13,15 @@ use Railt\Io\Readable;
 use Railt\Lexer\LexerInterface;
 use Railt\Lexer\Token\Unknown;
 use Railt\Lexer\TokenInterface;
-use Railt\Parser\Ast\Builder;
-use Railt\Parser\Ast\BuilderInterface;
 use Railt\Parser\Ast\RuleInterface;
-use Railt\Parser\Exception\GrammarException;
 use Railt\Parser\Exception\UnexpectedTokenException;
 use Railt\Parser\Rule\Alternation;
 use Railt\Parser\Rule\Concatenation;
 use Railt\Parser\Rule\Repetition;
 use Railt\Parser\Rule\Rule;
+use Railt\Parser\Ast\Rule as AstRule;
 use Railt\Parser\Rule\Terminal;
+use Railt\Parser\Runtime\Builder;
 use Railt\Parser\TokenStream\TokenStream;
 use Railt\Parser\Trace\Entry;
 use Railt\Parser\Trace\Escape;
@@ -38,11 +37,6 @@ class Parser implements ParserInterface
      * @var LexerInterface
      */
     protected $lexer;
-
-    /**
-     * @var GrammarInterface
-     */
-    protected $grammar;
 
     /**
      * Lexer iterator
@@ -73,64 +67,27 @@ class Parser implements ParserInterface
     private $todo;
 
     /**
+     * @var array
+     */
+    private $rules;
+
+    /**
+     * @var string
+     */
+    private $root;
+
+    /**
      * AbstractParser constructor.
      *
      * @param LexerInterface $lexer
-     * @param GrammarInterface $grammar
+     * @param array $rules
+     * @param string $root
      */
-    public function __construct(LexerInterface $lexer, GrammarInterface $grammar)
+    public function __construct(LexerInterface $lexer, array $rules, string $root)
     {
         $this->lexer = $lexer;
-        $this->grammar = $grammar;
-    }
-
-    /**
-     * @param string $ruleId
-     * @param \Closure $then
-     * @return ParserInterface|$this
-     * @throws GrammarException
-     */
-    public function extend(string $ruleId, \Closure $then): ParserInterface
-    {
-        $maxId = \count($this->grammar->getRules()) - 1;
-
-        $result = $then($this->grammar->fetch($ruleId), $maxId);
-
-        if ($result instanceof \Generator) {
-            while ($result->valid()) {
-                [$key, $value] = [$result->key(), $result->current()];
-
-                switch (true) {
-                    case $value instanceof Rule:
-                        $this->grammar->addRule($value);
-                        $value = $value->getName();
-                        break;
-
-                    case \is_string($key) && \is_string($value):
-                        if (! \class_exists($value)) {
-                            throw new GrammarException('Delegate class ' . $value . '::class not found');
-                        }
-
-                        $this->grammar->addDelegate($key, $value);
-                        break;
-
-                    default:
-                        throw new GrammarException('Bad parser extension generator arguments');
-                }
-
-                $result->send($value);
-            }
-        }
-
-        return $this;
-    }
-
-    /**
-     * @return GrammarInterface
-     */
-    public function getGrammar(): GrammarInterface
-    {
-        return $this->grammar;
+        $this->rules = $rules;
+        $this->root = $root;
     }
 
     /**
@@ -143,30 +100,28 @@ class Parser implements ParserInterface
 
     /**
      * @param Readable $input
-     * @return RuleInterface|mixed
+     * @return mixed|RuleInterface
+     * @throws \LogicException
      * @throws \Railt\Io\Exception\ExternalFileException
      */
     public function parse(Readable $input)
     {
-        return $this->build($this->trace($input));
+        $trace = $this->trace($input);
+
+        $builder = new Builder($trace, $this->rules, \Closure::fromCallable([$this, 'create']));
+
+        return $builder->build();
     }
 
     /**
-     * @param array $trace
-     * @return mixed
+     * @param string $rule
+     * @param array $children
+     * @param int $offset
+     * @return RuleInterface|mixed
      */
-    protected function build(array $trace)
+    protected function create(string $rule, array $children, int $offset)
     {
-        return $this->getBuilder($trace)->build();
-    }
-
-    /**
-     * @param array $trace
-     * @return BuilderInterface
-     */
-    protected function getBuilder(array $trace): BuilderInterface
-    {
-        return new Builder($trace, $this->grammar);
+        return new AstRule($rule, $children, $offset);
     }
 
     /**
@@ -177,7 +132,6 @@ class Parser implements ParserInterface
     protected function trace(Readable $input): array
     {
         $this->reset($input);
-        $this->prepare();
 
         do {
             if ($this->unfold() && $this->stream->isEoi()) {
@@ -201,7 +155,12 @@ class Parser implements ParserInterface
         $this->errorToken = null;
 
         $this->trace = [];
-        $this->todo = [];
+
+        $openRule = new Entry($this->root, 0, [
+            $closeRule = new Escape($this->root, 0),
+        ]);
+
+        $this->todo = [$closeRule, $openRule];
     }
 
     /**
@@ -234,18 +193,6 @@ class Parser implements ParserInterface
     }
 
     /**
-     * @return void
-     */
-    private function prepare(): void
-    {
-        $openRule = new Entry($this->grammar->beginAt(), 0, [
-            $closeRule = new Escape($this->grammar->beginAt(), 0),
-        ]);
-
-        $this->todo = [$closeRule, $openRule];
-    }
-
-    /**
      * Unfold trace.
      *
      * @return bool
@@ -258,7 +205,7 @@ class Parser implements ParserInterface
             if ($rule instanceof Escape) {
                 $this->addTrace($rule);
             } else {
-                $out = $this->reduce($this->grammar->fetch($rule->getRule()), $rule->getData());
+                $out = $this->reduce($this->rules[$rule->getRule()], $rule->getData());
 
                 if ($out === false && $this->backtrack() === false) {
                     return false;
@@ -427,9 +374,9 @@ class Parser implements ParserInterface
             $last = \array_pop($this->trace);
 
             if ($last instanceof Entry) {
-                $found = $this->grammar->fetch($last->getRule()) instanceof Alternation;
+                $found = $this->rules[$last->getRule()] instanceof Alternation;
             } elseif ($last instanceof Escape) {
-                $found = $this->grammar->fetch($last->getRule()) instanceof Repetition;
+                $found = $this->rules[$last->getRule()] instanceof Repetition;
             } elseif ($last instanceof Token) {
                 if (! $this->stream->prev()) {
                     return false;

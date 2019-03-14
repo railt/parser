@@ -1,0 +1,532 @@
+>  Document
+>  >  SchemaDefinition
+>  >  >  SchemaFieldDefinition
+>  >  >  >  Name
+>  >  >  >  >  token(T_QUERY, query)
+>  >  >  >  Type
+>  >  >  >  >  Name
+>  >  >  >  >  >  token(T_NAME, QueryType)
+>  >  >  SchemaFieldDefinition
+>  >  >  >  Name
+>  >  >  >  >  token(T_MUTATION, mutation)
+>  >  >  >  Type
+>  >  >  >  >  Name
+>  >  >  >  >  >  token(T_NAME, MutationType)
+>  >  ObjectDefinition
+>  >  >  Description
+>  >  >  >  StringValue
+>  >  >  >  >  token(T_BLOCK_STRING, """
+This is a description
+of the `Foo` type.
+""")
+>  >  >  Name
+>  >  >  >  token(T_NAME, Foo)
+>  >  >  TypeDefinitionImplements
+>  >  >  >  Name
+>  >  >  >  >  token(T_NAME, Bar)
+>  >  >  >  Name
+>  >  >  >  >  token(T_NAME, Baz)
+>  >  >  FieldDefinition
+>  >  >  >  Description
+>  >  >  >  >  StringValue
+>  >  >  >  >  >  token(T_STRING, "Description of the `one` field.")
+>  >  >  >  Name
+>  >  >  >  >  token(T_NAME, one)
+>  >  >  >  Type
+>  >  >  >  >  Name
+>  >  >  >  >  >  token(T_NAME, Type)
+>  >  >  FieldDefinition
+>  >  >  >  Description
+>  >  >  >  >  StringValue
+>  >  >  >  >  >  token(T_BLOCK_STRING, """
+    This is a description of the `two` field.
+    """)
+>  >  >  >  Name
+>  >  >  >  >  token(T_NAME, two)
+>  >  >  >  ArgumentDefinition
+>  >  >  >  >  Description
+>  >  >  >  >  >  StringValue
+>  >  >  >  >  >  >  token(T_BLOCK_STRING, """
+        This is a description of the `argument` argument.
+        """)
+>  >  >  >  >  Name
+>  >  >  >  >  >  token(T_NAME, argument)
+>  >  >  >  >  NonNullType
+>  >  >  >  >  >  Type
+>  >  >  >  >  >  >  Name
+>  >  >  >  >  >  >  >  token(T_NAME, InputType)
+>  >  >  >  Type
+>  >  >  >  >  Name
+>  >  >  >  >  >  token(T_NAME, Type)
+>  >  >  FieldDefinition
+>  >  >  >  Description
+>  >  >  >  >  StringValue
+>  >  >  >  >  >  token(T_BLOCK_STRING, """This is a description of the `three` field.""")
+>  >  >  >  Name
+>  >  >  >  >  token(T_NAME, three)
+>  >  >  >  ArgumentDefinition
+>  >  >  >  >  Name
+>  >  >  >  >  >  token(T_NAME, argument)
+>  >  >  >  >  Type
+>  >  >  >  >  >  Name
+>  >  >  >  >  >  >  token(T_NAME, InputType)
+>  >  >  >  ArgumentDefinition
+>  >  >  >  >  Name
+>  >  >  >  >  >  token(T_NAME, other)
+>  >  >  >  >  Type
+>  >  >  >  >  >  Name
+>  >  >  >  >  >  >  token(T_NAME, String)
+>  >  >  >  Type
+>  >  >  >  >  Name
+>  >  >  >  >  >  token(T_NAME, Int)
+>  >  >  FieldDefinition
+>  >  >  >  Name
+>  >  >  >  >  token(T_NAME, four)
+>  >  >  >  ArgumentDefinition
+>  >  >  >  >  Name
+>  >  >  >  >  >  token(T_NAME, argument)
+>  >  >  >  >  Type
+>  >  >  >  >  >  Name
+>  >  >  >  >  >  >  token(T_NAME, String)
+>  >  >  >  >  DefaultValue
+>  >  >  >  >  >  StringValue
+>  >  >  >  >  >  >  token(T_STRING, "string")
+>  >  >  >  Type
+>  >  >  >  >  Name
+>  >  >  >  >  >  token(T_NAME, String)
+>  >  >  FieldDefinition
+>  >  >  >  Name
+>  >  >  >  >  token(T_NAME, five)
+>  >  >  >  ArgumentDefinition
+>  >  >  >  >  Name
+>  >  >  >  >  >  token(T_NAME, argument)
+>  >  >  >  >  ListType
+>  >  >  >  >  >  Type
+>  >  >  >  >  >  >  Name
+>  >  >  >  >  >  >  >  token(T_NAME, String)
+>  >  >  >  >  DefaultValue
+>  >  >  >  >  >  ListValue
+>  >  >  >  >  >  >  StringValue
+>  >  >  >  >  >  >  >  token(T_STRING, "string")
+>  >  >  >  >  >  >  StringValue
+>  >  >  >  >  >  >  >  token(T_STRING, "string")
+>  >  >  >  Type
+>  >  >  >  >  Name
+>  >  >  >  >  >  token(T_NAME, String)
+>  >  >  FieldDefinition
+>  >  >  >  Name
+>  >  >  >  >  token(T_NAME, six)
+>  >  >  >  ArgumentDefinition
+>  >  >  >  >  Name
+>  >  >  >  >  >  token(T_NAME, argument)
+>  >  >  >  >  Type
+>  >  >  >  >  >  Name
+>  >  >  >  >  >  >  token(T_NAME, InputType)
+>  >  >  >  >  DefaultValue
+>  >  >  >  >  >  ObjectValue
+>  >  >  >  >  >  >  ObjectField
+>  >  >  >  >  >  >  >  Name
+>  >  >  >  >  >  >  >  >  token(T_NAME, key)
+>  >  >  >  >  >  >  >  StringValue
+>  >  >  >  >  >  >  >  >  token(T_STRING, "value")
+>  >  >  >  Type
+>  >  >  >  >  Name
+>  >  >  >  >  >  token(T_NAME, Type)
+>  >  >  FieldDefinition
+>  >  >  >  Name
+>  >  >  >  >  token(T_NAME, seven)
+>  >  >  >  ArgumentDefinition
+>  >  >  >  >  Name
+>  >  >  >  >  >  token(T_NAME, argument)
+>  >  >  >  >  Type
+>  >  >  >  >  >  Name
+>  >  >  >  >  >  >  token(T_NAME, Int)
+>  >  >  >  >  DefaultValue
+>  >  >  >  >  >  NullValue
+>  >  >  >  Type
+>  >  >  >  >  Name
+>  >  >  >  >  >  token(T_NAME, Type)
+>  >  ObjectDefinition
+>  >  >  Name
+>  >  >  >  token(T_NAME, AnnotatedObject)
+>  >  >  Directive
+>  >  >  >  Name
+>  >  >  >  >  token(T_NAME, onObject)
+>  >  >  >  Argument
+>  >  >  >  >  Name
+>  >  >  >  >  >  token(T_NAME, arg)
+>  >  >  >  >  StringValue
+>  >  >  >  >  >  token(T_STRING, "value")
+>  >  >  FieldDefinition
+>  >  >  >  Name
+>  >  >  >  >  token(T_NAME, annotatedField)
+>  >  >  >  ArgumentDefinition
+>  >  >  >  >  Name
+>  >  >  >  >  >  token(T_NAME, arg)
+>  >  >  >  >  Type
+>  >  >  >  >  >  Name
+>  >  >  >  >  >  >  token(T_NAME, Type)
+>  >  >  >  >  DefaultValue
+>  >  >  >  >  >  StringValue
+>  >  >  >  >  >  >  token(T_STRING, "default")
+>  >  >  >  >  Directive
+>  >  >  >  >  >  Name
+>  >  >  >  >  >  >  token(T_NAME, onArgumentDefinition)
+>  >  >  >  Type
+>  >  >  >  >  Name
+>  >  >  >  >  >  token(T_NAME, Type)
+>  >  >  >  Directive
+>  >  >  >  >  Name
+>  >  >  >  >  >  token(T_NAME, onField)
+>  >  ObjectDefinition
+>  >  >  Name
+>  >  >  >  token(T_NAME, UndefinedType)
+>  >  ObjectExtension
+>  >  >  Name
+>  >  >  >  token(T_NAME, Foo)
+>  >  >  FieldDefinition
+>  >  >  >  Name
+>  >  >  >  >  token(T_NAME, seven)
+>  >  >  >  ArgumentDefinition
+>  >  >  >  >  Name
+>  >  >  >  >  >  token(T_NAME, argument)
+>  >  >  >  >  ListType
+>  >  >  >  >  >  Type
+>  >  >  >  >  >  >  Name
+>  >  >  >  >  >  >  >  token(T_NAME, String)
+>  >  >  >  Type
+>  >  >  >  >  Name
+>  >  >  >  >  >  token(T_NAME, Type)
+>  >  ObjectExtension
+>  >  >  Name
+>  >  >  >  token(T_NAME, Foo)
+>  >  >  Directive
+>  >  >  >  Name
+>  >  >  >  >  token(T_NAME, onType)
+>  >  InterfaceDefinition
+>  >  >  Name
+>  >  >  >  token(T_NAME, Bar)
+>  >  >  FieldDefinition
+>  >  >  >  Name
+>  >  >  >  >  token(T_NAME, one)
+>  >  >  >  Type
+>  >  >  >  >  Name
+>  >  >  >  >  >  token(T_NAME, Type)
+>  >  >  FieldDefinition
+>  >  >  >  Name
+>  >  >  >  >  token(T_NAME, four)
+>  >  >  >  ArgumentDefinition
+>  >  >  >  >  Name
+>  >  >  >  >  >  token(T_NAME, argument)
+>  >  >  >  >  Type
+>  >  >  >  >  >  Name
+>  >  >  >  >  >  >  token(T_NAME, String)
+>  >  >  >  >  DefaultValue
+>  >  >  >  >  >  StringValue
+>  >  >  >  >  >  >  token(T_STRING, "string")
+>  >  >  >  Type
+>  >  >  >  >  Name
+>  >  >  >  >  >  token(T_NAME, String)
+>  >  InterfaceDefinition
+>  >  >  Name
+>  >  >  >  token(T_NAME, AnnotatedInterface)
+>  >  >  Directive
+>  >  >  >  Name
+>  >  >  >  >  token(T_NAME, onInterface)
+>  >  >  FieldDefinition
+>  >  >  >  Name
+>  >  >  >  >  token(T_NAME, annotatedField)
+>  >  >  >  ArgumentDefinition
+>  >  >  >  >  Name
+>  >  >  >  >  >  token(T_NAME, arg)
+>  >  >  >  >  Type
+>  >  >  >  >  >  Name
+>  >  >  >  >  >  >  token(T_NAME, Type)
+>  >  >  >  >  Directive
+>  >  >  >  >  >  Name
+>  >  >  >  >  >  >  token(T_NAME, onArgumentDefinition)
+>  >  >  >  Type
+>  >  >  >  >  Name
+>  >  >  >  >  >  token(T_NAME, Type)
+>  >  >  >  Directive
+>  >  >  >  >  Name
+>  >  >  >  >  >  token(T_NAME, onField)
+>  >  InterfaceDefinition
+>  >  >  Name
+>  >  >  >  token(T_NAME, UndefinedInterface)
+>  >  InterfaceExtension
+>  >  >  Name
+>  >  >  >  token(T_NAME, Bar)
+>  >  >  FieldDefinition
+>  >  >  >  Name
+>  >  >  >  >  token(T_NAME, two)
+>  >  >  >  ArgumentDefinition
+>  >  >  >  >  Name
+>  >  >  >  >  >  token(T_NAME, argument)
+>  >  >  >  >  NonNullType
+>  >  >  >  >  >  Type
+>  >  >  >  >  >  >  Name
+>  >  >  >  >  >  >  >  token(T_NAME, InputType)
+>  >  >  >  Type
+>  >  >  >  >  Name
+>  >  >  >  >  >  token(T_NAME, Type)
+>  >  InterfaceExtension
+>  >  >  Name
+>  >  >  >  token(T_NAME, Bar)
+>  >  >  Directive
+>  >  >  >  Name
+>  >  >  >  >  token(T_NAME, onInterface)
+>  >  UnionDefinition
+>  >  >  Name
+>  >  >  >  token(T_NAME, Feed)
+>  >  >  UnionDefinitionTargets
+>  >  >  >  Name
+>  >  >  >  >  token(T_NAME, Story)
+>  >  >  >  Name
+>  >  >  >  >  token(T_NAME, Article)
+>  >  >  >  Name
+>  >  >  >  >  token(T_NAME, Advert)
+>  >  UnionDefinition
+>  >  >  Name
+>  >  >  >  token(T_NAME, AnnotatedUnion)
+>  >  >  Directive
+>  >  >  >  Name
+>  >  >  >  >  token(T_NAME, onUnion)
+>  >  >  UnionDefinitionTargets
+>  >  >  >  Name
+>  >  >  >  >  token(T_NAME, A)
+>  >  >  >  Name
+>  >  >  >  >  token(T_NAME, B)
+>  >  UnionDefinition
+>  >  >  Name
+>  >  >  >  token(T_NAME, AnnotatedUnionTwo)
+>  >  >  Directive
+>  >  >  >  Name
+>  >  >  >  >  token(T_NAME, onUnion)
+>  >  >  UnionDefinitionTargets
+>  >  >  >  Name
+>  >  >  >  >  token(T_NAME, A)
+>  >  >  >  Name
+>  >  >  >  >  token(T_NAME, B)
+>  >  UnionDefinition
+>  >  >  Name
+>  >  >  >  token(T_NAME, UndefinedUnion)
+>  >  UnionExtension
+>  >  >  Name
+>  >  >  >  token(T_NAME, Feed)
+>  >  >  UnionDefinitionTargets
+>  >  >  >  Name
+>  >  >  >  >  token(T_NAME, Photo)
+>  >  >  >  Name
+>  >  >  >  >  token(T_NAME, Video)
+>  >  UnionExtension
+>  >  >  Name
+>  >  >  >  token(T_NAME, Feed)
+>  >  >  Directive
+>  >  >  >  Name
+>  >  >  >  >  token(T_NAME, onUnion)
+>  >  ScalarDefinition
+>  >  >  Name
+>  >  >  >  token(T_NAME, CustomScalar)
+>  >  ScalarDefinition
+>  >  >  Name
+>  >  >  >  token(T_NAME, AnnotatedScalar)
+>  >  >  Directive
+>  >  >  >  Name
+>  >  >  >  >  token(T_NAME, onScalar)
+>  >  ScalarExtension
+>  >  >  Name
+>  >  >  >  token(T_NAME, CustomScalar)
+>  >  >  Directive
+>  >  >  >  Name
+>  >  >  >  >  token(T_NAME, onScalar)
+>  >  EnumDefinition
+>  >  >  Name
+>  >  >  >  token(T_NAME, Site)
+>  >  >  EnumValueDefinition
+>  >  >  >  Description
+>  >  >  >  >  StringValue
+>  >  >  >  >  >  token(T_BLOCK_STRING, """
+    This is a description of the `DESKTOP` value
+    """)
+>  >  >  >  Name
+>  >  >  >  >  token(T_NAME, DESKTOP)
+>  >  >  EnumValueDefinition
+>  >  >  >  Description
+>  >  >  >  >  StringValue
+>  >  >  >  >  >  token(T_BLOCK_STRING, """This is a description of the `MOBILE` value""")
+>  >  >  >  Name
+>  >  >  >  >  token(T_NAME, MOBILE)
+>  >  >  EnumValueDefinition
+>  >  >  >  Description
+>  >  >  >  >  StringValue
+>  >  >  >  >  >  token(T_STRING, "This is a description of the `WEB` value")
+>  >  >  >  Name
+>  >  >  >  >  token(T_NAME, WEB)
+>  >  EnumDefinition
+>  >  >  Name
+>  >  >  >  token(T_NAME, AnnotatedEnum)
+>  >  >  Directive
+>  >  >  >  Name
+>  >  >  >  >  token(T_NAME, onEnum)
+>  >  >  EnumValueDefinition
+>  >  >  >  Name
+>  >  >  >  >  token(T_NAME, ANNOTATED_VALUE)
+>  >  >  >  Directive
+>  >  >  >  >  Name
+>  >  >  >  >  >  token(T_NAME, onEnumValue)
+>  >  >  EnumValueDefinition
+>  >  >  >  Name
+>  >  >  >  >  token(T_NAME, OTHER_VALUE)
+>  >  EnumDefinition
+>  >  >  Name
+>  >  >  >  token(T_NAME, UndefinedEnum)
+>  >  EnumExtension
+>  >  >  Name
+>  >  >  >  token(T_NAME, Site)
+>  >  >  EnumValueDefinition
+>  >  >  >  Name
+>  >  >  >  >  token(T_NAME, VR)
+>  >  EnumExtension
+>  >  >  Name
+>  >  >  >  token(T_NAME, Site)
+>  >  >  Directive
+>  >  >  >  Name
+>  >  >  >  >  token(T_NAME, onEnum)
+>  >  InputDefinition
+>  >  >  Name
+>  >  >  >  token(T_NAME, InputType)
+>  >  >  InputFieldDefinition
+>  >  >  >  Name
+>  >  >  >  >  token(T_NAME, key)
+>  >  >  >  NonNullType
+>  >  >  >  >  Type
+>  >  >  >  >  >  Name
+>  >  >  >  >  >  >  token(T_NAME, String)
+>  >  >  InputFieldDefinition
+>  >  >  >  Name
+>  >  >  >  >  token(T_NAME, answer)
+>  >  >  >  Type
+>  >  >  >  >  Name
+>  >  >  >  >  >  token(T_NAME, Int)
+>  >  >  >  DefaultValue
+>  >  >  >  >  NumberValue
+>  >  >  >  >  >  token(T_NUMBER, 42)
+>  >  InputDefinition
+>  >  >  Name
+>  >  >  >  token(T_NAME, AnnotatedInput)
+>  >  >  Directive
+>  >  >  >  Name
+>  >  >  >  >  token(T_NAME, onInputObject)
+>  >  >  InputFieldDefinition
+>  >  >  >  Name
+>  >  >  >  >  token(T_NAME, annotatedField)
+>  >  >  >  Type
+>  >  >  >  >  Name
+>  >  >  >  >  >  token(T_NAME, Type)
+>  >  >  >  Directive
+>  >  >  >  >  Name
+>  >  >  >  >  >  token(T_NAME, onInputFieldDefinition)
+>  >  InputDefinition
+>  >  >  Name
+>  >  >  >  token(T_NAME, UndefinedInput)
+>  >  InputExtension
+>  >  >  Name
+>  >  >  >  token(T_NAME, InputType)
+>  >  >  InputFieldDefinition
+>  >  >  >  Name
+>  >  >  >  >  token(T_NAME, other)
+>  >  >  >  Type
+>  >  >  >  >  Name
+>  >  >  >  >  >  token(T_NAME, Float)
+>  >  >  >  DefaultValue
+>  >  >  >  >  NumberValue
+>  >  >  >  >  >  token(T_NUMBER, 1.23e4)
+>  >  >  >  Directive
+>  >  >  >  >  Name
+>  >  >  >  >  >  token(T_NAME, onInputFieldDefinition)
+>  >  InputExtension
+>  >  >  Name
+>  >  >  >  token(T_NAME, InputType)
+>  >  >  Directive
+>  >  >  >  Name
+>  >  >  >  >  token(T_NAME, onInputObject)
+>  >  DirectiveDefinition
+>  >  >  Description
+>  >  >  >  StringValue
+>  >  >  >  >  token(T_BLOCK_STRING, """
+This is a description of the `@skip` directive
+""")
+>  >  >  Name
+>  >  >  >  token(T_NAME, skip)
+>  >  >  ArgumentDefinition
+>  >  >  >  Name
+>  >  >  >  >  token(T_NAME, if)
+>  >  >  >  NonNullType
+>  >  >  >  >  Type
+>  >  >  >  >  >  Name
+>  >  >  >  >  >  >  token(T_NAME, Boolean)
+>  >  >  >  Directive
+>  >  >  >  >  Name
+>  >  >  >  >  >  token(T_NAME, onArgumentDefinition)
+>  >  >  DirectiveLocation
+>  >  >  >  Name
+>  >  >  >  >  token(T_NAME, FIELD)
+>  >  >  DirectiveLocation
+>  >  >  >  Name
+>  >  >  >  >  token(T_NAME, FRAGMENT_SPREAD)
+>  >  >  DirectiveLocation
+>  >  >  >  Name
+>  >  >  >  >  token(T_NAME, INLINE_FRAGMENT)
+>  >  DirectiveDefinition
+>  >  >  Name
+>  >  >  >  token(T_NAME, include)
+>  >  >  ArgumentDefinition
+>  >  >  >  Name
+>  >  >  >  >  token(T_NAME, if)
+>  >  >  >  NonNullType
+>  >  >  >  >  Type
+>  >  >  >  >  >  Name
+>  >  >  >  >  >  >  token(T_NAME, Boolean)
+>  >  >  DirectiveLocation
+>  >  >  >  Name
+>  >  >  >  >  token(T_NAME, FIELD)
+>  >  >  DirectiveLocation
+>  >  >  >  Name
+>  >  >  >  >  token(T_NAME, FRAGMENT_SPREAD)
+>  >  >  DirectiveLocation
+>  >  >  >  Name
+>  >  >  >  >  token(T_NAME, INLINE_FRAGMENT)
+>  >  DirectiveDefinition
+>  >  >  Name
+>  >  >  >  token(T_NAME, include2)
+>  >  >  ArgumentDefinition
+>  >  >  >  Name
+>  >  >  >  >  token(T_NAME, if)
+>  >  >  >  NonNullType
+>  >  >  >  >  Type
+>  >  >  >  >  >  Name
+>  >  >  >  >  >  >  token(T_NAME, Boolean)
+>  >  >  DirectiveLocation
+>  >  >  >  Name
+>  >  >  >  >  token(T_NAME, FIELD)
+>  >  >  DirectiveLocation
+>  >  >  >  Name
+>  >  >  >  >  token(T_NAME, FRAGMENT_SPREAD)
+>  >  >  DirectiveLocation
+>  >  >  >  Name
+>  >  >  >  >  token(T_NAME, INLINE_FRAGMENT)
+>  >  SchemaExtension
+>  >  >  Directive
+>  >  >  >  Name
+>  >  >  >  >  token(T_NAME, onSchema)
+>  >  SchemaExtension
+>  >  >  Directive
+>  >  >  >  Name
+>  >  >  >  >  token(T_NAME, onSchema)
+>  >  >  SchemaFieldDefinition
+>  >  >  >  Name
+>  >  >  >  >  token(T_SUBSCRIPTION, subscription)
+>  >  >  >  Type
+>  >  >  >  >  Name
+>  >  >  >  >  >  token(T_NAME, SubscriptionType)

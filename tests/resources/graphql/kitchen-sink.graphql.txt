@@ -1,0 +1,228 @@
+>  Document
+>  >  QueryOperation
+>  >  >  Name
+>  >  >  >  token(T_NAME, queryName)
+>  >  >  VariableDefinition
+>  >  >  >  Variable
+>  >  >  >  >  token(T_VARIABLE, $foo)
+>  >  >  >  Type
+>  >  >  >  >  Name
+>  >  >  >  >  >  token(T_NAME, ComplexType)
+>  >  >  VariableDefinition
+>  >  >  >  Variable
+>  >  >  >  >  token(T_VARIABLE, $site)
+>  >  >  >  Type
+>  >  >  >  >  Name
+>  >  >  >  >  >  token(T_NAME, Site)
+>  >  >  >  DefaultValue
+>  >  >  >  >  EnumValue
+>  >  >  >  >  >  Name
+>  >  >  >  >  >  >  token(T_NAME, MOBILE)
+>  >  >  Directive
+>  >  >  >  Name
+>  >  >  >  >  token(T_NAME, onQuery)
+>  >  >  Field
+>  >  >  >  Alias
+>  >  >  >  >  Name
+>  >  >  >  >  >  token(T_NAME, whoever123is)
+>  >  >  >  Name
+>  >  >  >  >  token(T_NAME, node)
+>  >  >  >  Argument
+>  >  >  >  >  Name
+>  >  >  >  >  >  token(T_NAME, id)
+>  >  >  >  >  ListValue
+>  >  >  >  >  >  NumberValue
+>  >  >  >  >  >  >  token(T_NUMBER, 123)
+>  >  >  >  >  >  NumberValue
+>  >  >  >  >  >  >  token(T_NUMBER, 456)
+>  >  >  >  Field
+>  >  >  >  >  Name
+>  >  >  >  >  >  token(T_NAME, id)
+>  >  >  >  InlineFragment
+>  >  >  >  >  TypeCondition
+>  >  >  >  >  >  Name
+>  >  >  >  >  >  >  token(T_NAME, User)
+>  >  >  >  >  Directive
+>  >  >  >  >  >  Name
+>  >  >  >  >  >  >  token(T_NAME, onInlineFragment)
+>  >  >  >  >  Field
+>  >  >  >  >  >  Name
+>  >  >  >  >  >  >  token(T_NAME, field2)
+>  >  >  >  >  >  Field
+>  >  >  >  >  >  >  Name
+>  >  >  >  >  >  >  >  token(T_NAME, id)
+>  >  >  >  >  >  Field
+>  >  >  >  >  >  >  Alias
+>  >  >  >  >  >  >  >  Name
+>  >  >  >  >  >  >  >  >  token(T_NAME, alias)
+>  >  >  >  >  >  >  Name
+>  >  >  >  >  >  >  >  token(T_NAME, field1)
+>  >  >  >  >  >  >  Argument
+>  >  >  >  >  >  >  >  Name
+>  >  >  >  >  >  >  >  >  token(T_NAME, first)
+>  >  >  >  >  >  >  >  NumberValue
+>  >  >  >  >  >  >  >  >  token(T_NUMBER, 10)
+>  >  >  >  >  >  >  Argument
+>  >  >  >  >  >  >  >  Name
+>  >  >  >  >  >  >  >  >  token(T_NAME, after)
+>  >  >  >  >  >  >  >  Variable
+>  >  >  >  >  >  >  >  >  token(T_VARIABLE, $foo)
+>  >  >  >  >  >  >  Directive
+>  >  >  >  >  >  >  >  Name
+>  >  >  >  >  >  >  >  >  token(T_NAME, include)
+>  >  >  >  >  >  >  >  Argument
+>  >  >  >  >  >  >  >  >  Name
+>  >  >  >  >  >  >  >  >  >  token(T_NAME, if)
+>  >  >  >  >  >  >  >  >  Variable
+>  >  >  >  >  >  >  >  >  >  token(T_VARIABLE, $foo)
+>  >  >  >  >  >  >  Field
+>  >  >  >  >  >  >  >  Name
+>  >  >  >  >  >  >  >  >  token(T_NAME, id)
+>  >  >  >  >  >  >  FragmentSpread
+>  >  >  >  >  >  >  >  Name
+>  >  >  >  >  >  >  >  >  token(T_NAME, frag)
+>  >  >  >  >  >  >  >  Directive
+>  >  >  >  >  >  >  >  >  Name
+>  >  >  >  >  >  >  >  >  >  token(T_NAME, onFragmentSpread)
+>  >  >  >  InlineFragment
+>  >  >  >  >  Directive
+>  >  >  >  >  >  Name
+>  >  >  >  >  >  >  token(T_NAME, skip)
+>  >  >  >  >  >  Argument
+>  >  >  >  >  >  >  Name
+>  >  >  >  >  >  >  >  token(T_NAME, unless)
+>  >  >  >  >  >  >  Variable
+>  >  >  >  >  >  >  >  token(T_VARIABLE, $foo)
+>  >  >  >  >  Field
+>  >  >  >  >  >  Name
+>  >  >  >  >  >  >  token(T_NAME, id)
+>  >  >  >  InlineFragment
+>  >  >  >  >  Field
+>  >  >  >  >  >  Name
+>  >  >  >  >  >  >  token(T_NAME, id)
+>  >  MutationOperation
+>  >  >  Name
+>  >  >  >  token(T_NAME, likeStory)
+>  >  >  Directive
+>  >  >  >  Name
+>  >  >  >  >  token(T_NAME, onMutation)
+>  >  >  Field
+>  >  >  >  Name
+>  >  >  >  >  token(T_NAME, like)
+>  >  >  >  Argument
+>  >  >  >  >  Name
+>  >  >  >  >  >  token(T_NAME, story)
+>  >  >  >  >  NumberValue
+>  >  >  >  >  >  token(T_NUMBER, 123)
+>  >  >  >  Directive
+>  >  >  >  >  Name
+>  >  >  >  >  >  token(T_NAME, onField)
+>  >  >  >  Field
+>  >  >  >  >  Name
+>  >  >  >  >  >  token(T_NAME, story)
+>  >  >  >  >  Field
+>  >  >  >  >  >  Name
+>  >  >  >  >  >  >  token(T_NAME, id)
+>  >  >  >  >  >  Directive
+>  >  >  >  >  >  >  Name
+>  >  >  >  >  >  >  >  token(T_NAME, onField)
+>  >  SubscriptionOperation
+>  >  >  Name
+>  >  >  >  token(T_NAME, StoryLikeSubscription)
+>  >  >  VariableDefinition
+>  >  >  >  Variable
+>  >  >  >  >  token(T_VARIABLE, $input)
+>  >  >  >  Type
+>  >  >  >  >  Name
+>  >  >  >  >  >  token(T_NAME, StoryLikeSubscribeInput)
+>  >  >  Directive
+>  >  >  >  Name
+>  >  >  >  >  token(T_NAME, onSubscription)
+>  >  >  Field
+>  >  >  >  Name
+>  >  >  >  >  token(T_NAME, storyLikeSubscribe)
+>  >  >  >  Argument
+>  >  >  >  >  Name
+>  >  >  >  >  >  token(T_INPUT, input)
+>  >  >  >  >  Variable
+>  >  >  >  >  >  token(T_VARIABLE, $input)
+>  >  >  >  Field
+>  >  >  >  >  Name
+>  >  >  >  >  >  token(T_NAME, story)
+>  >  >  >  >  Field
+>  >  >  >  >  >  Name
+>  >  >  >  >  >  >  token(T_NAME, likers)
+>  >  >  >  >  >  Field
+>  >  >  >  >  >  >  Name
+>  >  >  >  >  >  >  >  token(T_NAME, count)
+>  >  >  >  >  Field
+>  >  >  >  >  >  Name
+>  >  >  >  >  >  >  token(T_NAME, likeSentence)
+>  >  >  >  >  >  Field
+>  >  >  >  >  >  >  Name
+>  >  >  >  >  >  >  >  token(T_NAME, text)
+>  >  FragmentDefinition
+>  >  >  Name
+>  >  >  >  token(T_NAME, frag)
+>  >  >  TypeCondition
+>  >  >  >  Name
+>  >  >  >  >  token(T_NAME, Friend)
+>  >  >  Directive
+>  >  >  >  Name
+>  >  >  >  >  token(T_NAME, onFragmentDefinition)
+>  >  >  Field
+>  >  >  >  Name
+>  >  >  >  >  token(T_NAME, foo)
+>  >  >  >  Argument
+>  >  >  >  >  Name
+>  >  >  >  >  >  token(T_NAME, size)
+>  >  >  >  >  Variable
+>  >  >  >  >  >  token(T_VARIABLE, $size)
+>  >  >  >  Argument
+>  >  >  >  >  Name
+>  >  >  >  >  >  token(T_NAME, bar)
+>  >  >  >  >  Variable
+>  >  >  >  >  >  token(T_VARIABLE, $b)
+>  >  >  >  Argument
+>  >  >  >  >  Name
+>  >  >  >  >  >  token(T_NAME, obj)
+>  >  >  >  >  ObjectValue
+>  >  >  >  >  >  ObjectField
+>  >  >  >  >  >  >  Name
+>  >  >  >  >  >  >  >  token(T_NAME, key)
+>  >  >  >  >  >  >  StringValue
+>  >  >  >  >  >  >  >  token(T_STRING, "value")
+>  >  >  >  >  >  ObjectField
+>  >  >  >  >  >  >  Name
+>  >  >  >  >  >  >  >  token(T_NAME, block)
+>  >  >  >  >  >  >  StringValue
+>  >  >  >  >  >  >  >  token(T_BLOCK_STRING, """
+
+    block string uses \"""
+
+    """)
+>  >  QueryOperation
+>  >  >  Field
+>  >  >  >  Name
+>  >  >  >  >  token(T_NAME, unnamed)
+>  >  >  >  Argument
+>  >  >  >  >  Name
+>  >  >  >  >  >  token(T_NAME, truthy)
+>  >  >  >  >  BooleanValue
+>  >  >  >  >  >  token(T_TRUE, true)
+>  >  >  >  Argument
+>  >  >  >  >  Name
+>  >  >  >  >  >  token(T_NAME, falsey)
+>  >  >  >  >  BooleanValue
+>  >  >  >  >  >  token(T_FALSE, false)
+>  >  >  >  Argument
+>  >  >  >  >  Name
+>  >  >  >  >  >  token(T_NAME, nullish)
+>  >  >  >  >  NullValue
+>  >  >  Field
+>  >  >  >  Name
+>  >  >  >  >  token(T_QUERY, query)
+>  >  QueryOperation
+>  >  >  Field
+>  >  >  >  Name
+>  >  >  >  >  token(T_NAME, __typename)
