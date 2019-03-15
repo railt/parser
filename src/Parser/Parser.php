@@ -13,20 +13,21 @@ use Railt\Io\Readable;
 use Railt\Lexer\LexerInterface;
 use Railt\Lexer\Token\Unknown;
 use Railt\Lexer\TokenInterface;
+use Railt\Parser\Ast\Rule as AstRule;
 use Railt\Parser\Ast\RuleInterface;
 use Railt\Parser\Exception\UnexpectedTokenException;
 use Railt\Parser\Rule\Alternation;
 use Railt\Parser\Rule\Concatenation;
 use Railt\Parser\Rule\Repetition;
 use Railt\Parser\Rule\Rule;
-use Railt\Parser\Ast\Rule as AstRule;
 use Railt\Parser\Rule\Terminal;
 use Railt\Parser\Runtime\Builder;
-use Railt\Parser\TokenStream\TokenStream;
-use Railt\Parser\Trace\Entry;
-use Railt\Parser\Trace\Escape;
-use Railt\Parser\Trace\Token;
-use Railt\Parser\Trace\TraceItem;
+use Railt\Parser\Runtime\TokenStream;
+use Railt\Parser\Runtime\Trace\Entry;
+use Railt\Parser\Runtime\Trace\Escape;
+use Railt\Parser\Runtime\Trace\Statement;
+use Railt\Parser\Runtime\Trace\Lexeme;
+use Railt\Parser\Runtime\Trace\TraceItem;
 
 /**
  * Class Parser
@@ -55,19 +56,19 @@ class Parser implements ParserInterface
     /**
      * Trace of parsed rules
      *
-     * @var array|TraceItem[]
+     * @var array|Statement[]|Lexeme[]
      */
     protected $trace = [];
 
     /**
      * Stack of items which need to be processed
      *
-     * @var \SplStack|TraceItem[]
+     * @var array|Statement[]|Lexeme[]
      */
     private $todo;
 
     /**
-     * @var array
+     * @var array|Rule[]
      */
     private $rules;
 
@@ -205,7 +206,7 @@ class Parser implements ParserInterface
             if ($rule instanceof Escape) {
                 $this->addTrace($rule);
             } else {
-                $out = $this->reduce($this->rules[$rule->getRule()], $rule->getData());
+                $out = $this->reduce($this->rules[$rule->getName()], $rule->getState());
 
                 if ($out === false && $this->backtrack() === false) {
                     return false;
@@ -272,7 +273,7 @@ class Parser implements ParserInterface
 
         \array_pop($this->todo);
 
-        $this->addTrace(new Token($current, $token->isKept()));
+        $this->addTrace(new Lexeme($current, $token->isKept()));
         $this->errorToken = $this->stream->next();
 
         return true;
@@ -374,10 +375,10 @@ class Parser implements ParserInterface
             $last = \array_pop($this->trace);
 
             if ($last instanceof Entry) {
-                $found = $this->rules[$last->getRule()] instanceof Alternation;
+                $found = $this->rules[$last->getName()] instanceof Alternation;
             } elseif ($last instanceof Escape) {
-                $found = $this->rules[$last->getRule()] instanceof Repetition;
-            } elseif ($last instanceof Token) {
+                $found = $this->rules[$last->getName()] instanceof Repetition;
+            } elseif ($last instanceof Lexeme) {
                 if (! $this->stream->prev()) {
                     return false;
                 }
@@ -388,8 +389,8 @@ class Parser implements ParserInterface
             return false;
         }
 
-        $this->todo = $last->getTodo();
-        $this->todo[] = new Entry($last->getRule(), $last->getData() + 1);
+        $this->todo = $last->getJumps();
+        $this->todo[] = new Entry($last->getName(), $last->getState() + 1);
 
         return true;
     }

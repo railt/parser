@@ -7,7 +7,7 @@
  */
 declare(strict_types=1);
 
-namespace Railt\Parser\TokenStream;
+namespace Railt\Parser\Runtime;
 
 use Railt\Lexer\Token\EndOfInput;
 use Railt\Lexer\TokenInterface;

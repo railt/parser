@@ -12,8 +12,11 @@ namespace Railt\Parser\Runtime;
 use Railt\Parser\Ast\Leaf;
 use Railt\Parser\Ast\Node;
 use Railt\Parser\Ast\RuleInterface;
-use Railt\Parser\Trace\Entry;
-use Railt\Parser\Trace\Escape;
+use Railt\Parser\Runtime\Trace\Entry;
+use Railt\Parser\Runtime\Trace\Escape;
+use Railt\Parser\Runtime\Trace\LexemeInterface;
+use Railt\Parser\Runtime\Trace\StmtInterface;
+use Railt\Parser\Runtime\Trace\TraceInterface;
 
 /**
  * Class Builder
@@ -21,7 +24,7 @@ use Railt\Parser\Trace\Escape;
 class Builder implements BuilderInterface
 {
     /**
-     * @var array
+     * @var array|TraceInterface[]|LexemeInterface[]|StmtInterface[]
      */
     private $trace;
 
@@ -75,14 +78,14 @@ class Builder implements BuilderInterface
             $trace = $this->trace[$i];
 
             if ($trace instanceof Entry) {
-                $ruleName = $trace->getRule();
+                $ruleName = $trace->getName();
                 $rule = $this->rules[$ruleName];
                 $isRule = $trace->isTransitional() === false;
                 $nextTrace = $this->trace[$i + 1];
                 $id = $rule->getNodeId();
 
                 // Optimization: Skip empty trace sequence.
-                if ($nextTrace instanceof Escape && $ruleName === $nextTrace->getRule()) {
+                if ($nextTrace instanceof Escape && $ruleName === $nextTrace->getName()) {
                     $i += 2;
 
                     continue;
@@ -138,7 +141,7 @@ class Builder implements BuilderInterface
                     continue;
                 }
 
-                $children[] = new Leaf($trace->getToken());
+                $children[] = new Leaf($trace->getName(), $trace->getValue(), $trace->getOffset());
                 ++$i;
             }
         }

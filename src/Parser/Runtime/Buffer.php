@@ -7,7 +7,7 @@
  */
 declare(strict_types=1);
 
-namespace Railt\Parser\TokenStream;
+namespace Railt\Parser\Runtime;
 
 /**
  * Creates an iterator from another iterator that will keep the results of the

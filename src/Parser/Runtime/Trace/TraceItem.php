@@ -7,13 +7,12 @@
  */
 declare(strict_types=1);
 
-namespace Railt\Parser\Trace;
+namespace Railt\Parser\Runtime\Trace;
 
 /**
  * Class TraceItem
- * @internal the class is part of the internal logic
  */
-abstract class TraceItem
+abstract class TraceItem implements TraceInterface
 {
     /**
      * @var int
@@ -21,10 +20,25 @@ abstract class TraceItem
     protected $offset = 0;
 
     /**
-     * @param int $offset
-     * @return TraceItem
+     * @var string|int
      */
-    public function at(int $offset): self
+    protected $name;
+
+    /**
+     * TraceItem constructor.
+     *
+     * @param string|int $name
+     */
+    public function __construct($name)
+    {
+        $this->name = $name;
+    }
+
+    /**
+     * @param int $offset
+     * @return TraceInterface
+     */
+    public function at(int $offset): TraceInterface
     {
         $this->offset = $offset;
 
@@ -37,5 +51,13 @@ abstract class TraceItem
     public function getOffset(): int
     {
         return $this->offset;
+    }
+
+    /**
+     * @return int|string
+     */
+    public function getName()
+    {
+        return $this->name;
     }
 }

@@ -50,7 +50,7 @@ class Rule extends Node implements RuleInterface, \ArrayAccess
     }
 
     /**
-     * @return \Traversable|LeafInterface[]|RuleInterface[]
+     * @return \Traversable|LeafInterface[]|RuleInterface[]|NodeInterface[]
      */
     public function getIterator(): \Traversable
     {
@@ -58,30 +58,19 @@ class Rule extends Node implements RuleInterface, \ArrayAccess
     }
 
     /**
-     * @param int $group
-     * @return null|string
+     * @return string
      */
-    public function getValue(int $group = 0): ?string
+    public function getValue(): string
     {
         $result = '';
 
         foreach ($this->getChildren() as $child) {
             if (\method_exists($child, 'getValue')) {
-                $result .= $child->getValue($group);
+                $result .= $child->getValue();
             }
         }
 
         return $result;
-    }
-
-    /**
-     * @return iterable|string[]|\Generator
-     */
-    public function getValues(): iterable
-    {
-        foreach ($this->getChildren() as $child) {
-            yield from $child->getValues();
-        }
     }
 
     /**

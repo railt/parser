@@ -7,12 +7,11 @@
  */
 declare(strict_types=1);
 
-namespace Railt\Parser\Trace;
+namespace Railt\Parser\Runtime\Trace;
 
 /**
  * Class Escape
- * @internal the class is part of the internal logic
  */
-class Escape extends Invocation
+class Escape extends Statement
 {
 }

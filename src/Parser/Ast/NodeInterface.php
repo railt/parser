@@ -33,15 +33,9 @@ interface NodeInterface
     public function getOffset(): int;
 
     /**
-     * @return iterable|string[]|\Generator
+     * @return string
      */
-    public function getValues(): iterable;
-
-    /**
-     * @param int $group
-     * @return string|null
-     */
-    public function getValue(int $group = 0): ?string;
+    public function getValue(): string;
 
     /**
      * @param NodeDumperInterface|string $dumper

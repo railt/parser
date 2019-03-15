@@ -30,9 +30,9 @@ class ParserTestCase extends TestCase
     public function grammars(): array
     {
         $sources = [
-            'PP2'  => [new PP2GrammarParser(), [__DIR__ . '/resources/pp2/*.pp2']],
-            'JSON' => [new JsonParser(), [__DIR__ . '/resources/json/*.json']],
-            'SDL'  => [new SDLParser(), [__DIR__ . '/resources/sdl/*.graphqls']],
+            'PP2'      => [new PP2GrammarParser(), [__DIR__ . '/resources/pp2/*.pp2']],
+            'JSON'     => [new JsonParser(), [__DIR__ . '/resources/json/*.json']],
+            'SDL'      => [new SDLParser(), [__DIR__ . '/resources/sdl/*.graphqls']],
             'GraphQL'  => [new GraphQLParser(), [
                 __DIR__ . '/resources/graphql/*.graphqls',
                 __DIR__ . '/resources/graphql/*.graphql',

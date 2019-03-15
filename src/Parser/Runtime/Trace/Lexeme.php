@@ -7,25 +7,24 @@
  */
 declare(strict_types=1);
 
-namespace Railt\Parser\Trace;
+namespace Railt\Parser\Runtime\Trace;
 
 use Railt\Lexer\TokenInterface;
 
 /**
  * Class Token
- * @internal the class is part of the internal logic
  */
-class Token extends TraceItem
+class Lexeme extends TraceItem implements LexemeInterface
 {
-    /**
-     * @var TokenInterface
-     */
-    private $token;
-
     /**
      * @var bool
      */
     private $kept;
+
+    /**
+     * @var string
+     */
+    private $value;
 
     /**
      * Token constructor.
@@ -35,17 +34,19 @@ class Token extends TraceItem
      */
     public function __construct(TokenInterface $token, bool $kept)
     {
-        $this->kept = $kept;
-        $this->token = $token;
+        parent::__construct($token->getName());
         $this->at($token->getOffset());
+        $this->value = $token->getValue();
+
+        $this->kept = $kept;
     }
 
     /**
-     * @return TokenInterface
+     * @return string
      */
-    public function getToken(): TokenInterface
+    public function getValue(): string
     {
-        return $this->token;
+        return $this->value;
     }
 
     /**

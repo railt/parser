@@ -568,7 +568,7 @@ class GraphQLParser extends Parser
             376                                    => new Concatenation(376, ['UnionExtension'], null),
             'TypeSystemExtension'                  => new Alternation('TypeSystemExtension', ['EnumExtension', 'InputExtension', 'InterfaceExtension', 'ObjectExtension', 'ScalarExtension', 'SchemaExtension', 376], null),
             378                                    => new Concatenation(378, ['UnionDefinition'], null),
-            'TypeSystemDefinition'                 => new Alternation('TypeSystemDefinition', ['DirectiveDefinition', 'SchemaDefinition', 'EnumDefinition', 'InputDefinition', 'InterfaceDefinition', 'ObjectDefinition', 'ScalarDefinition', 378], null)
+            'TypeSystemDefinition'                 => new Alternation('TypeSystemDefinition', ['DirectiveDefinition', 'SchemaDefinition', 'EnumDefinition', 'InputDefinition', 'InterfaceDefinition', 'ObjectDefinition', 'ScalarDefinition', 378], null),
         ];
     }
 }
