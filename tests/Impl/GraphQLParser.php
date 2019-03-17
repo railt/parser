@@ -12,10 +12,10 @@ namespace Railt\Tests\Parser\Impl;
 use Railt\Lexer\Driver\NativeRegex;
 use Railt\Lexer\LexerInterface;
 use Railt\Parser\Parser;
-use Railt\Parser\Rule\Alternation;
-use Railt\Parser\Rule\Concatenation;
-use Railt\Parser\Rule\Repetition;
-use Railt\Parser\Rule\Terminal;
+use Railt\Parser\Builder\Definition\Alternation;
+use Railt\Parser\Builder\Definition\Concatenation;
+use Railt\Parser\Builder\Definition\Repetition;
+use Railt\Parser\Builder\Definition\Terminal;
 
 /**
  * Class GraphQLParser
@@ -184,7 +184,7 @@ class GraphQLParser extends Parser
     }
 
     /**
-     * @return array|\Railt\Parser\Rule\Rule[]
+     * @return array|\Railt\Parser\Builder\Definition\Rule[]
      */
     protected function createGrammarRules(): array
     {

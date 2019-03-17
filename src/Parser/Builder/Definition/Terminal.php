@@ -7,7 +7,7 @@
  */
 declare(strict_types=1);
 
-namespace Railt\Parser\Rule;
+namespace Railt\Parser\Builder\Definition;
 
 /**
  * Class Terminal
