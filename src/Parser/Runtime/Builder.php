@@ -12,6 +12,7 @@ namespace Railt\Parser\Runtime;
 use Railt\Parser\Ast\Leaf;
 use Railt\Parser\Ast\Node;
 use Railt\Parser\Ast\RuleInterface;
+use Railt\Parser\Grammar;
 use Railt\Parser\Runtime\Trace\Entry;
 use Railt\Parser\Runtime\Trace\Escape;
 use Railt\Parser\Runtime\Trace\LexemeInterface;
@@ -29,27 +30,27 @@ class Builder implements BuilderInterface
     private $trace;
 
     /**
-     * @var array
-     */
-    private $rules;
-
-    /**
      * @var \Closure
      */
     private $reduce;
 
     /**
+     * @var Grammar
+     */
+    private $grammar;
+
+    /**
      * Builder constructor.
      *
      * @param array $trace
-     * @param array $rules
+     * @param Grammar $grammar
      * @param \Closure $reduce
      */
-    public function __construct(array $trace, array $rules, \Closure $reduce)
+    public function __construct(array $trace, Grammar $grammar, \Closure $reduce)
     {
         $this->trace = $trace;
-        $this->rules = $rules;
         $this->reduce = $reduce;
+        $this->grammar = $grammar;
     }
 
     /**
@@ -67,7 +68,7 @@ class Builder implements BuilderInterface
      *
      * @param int $i Current trace index.
      * @param array &$children Collected children.
-     * @return Node|int
+     * @return Node|int|mixed
      * @throws \LogicException
      */
     protected function buildTree(int $i = 0, array &$children = [])
@@ -79,7 +80,7 @@ class Builder implements BuilderInterface
 
             if ($trace instanceof Entry) {
                 $ruleName = $trace->getName();
-                $rule = $this->rules[$ruleName];
+                $rule = $this->grammar->get($ruleName);
                 $isRule = $trace->isTransitional() === false;
                 $nextTrace = $this->trace[$i + 1];
                 $id = $rule->getNodeId();

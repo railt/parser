@@ -11,6 +11,7 @@ namespace Railt\Tests\Parser\Impl;
 
 use Railt\Lexer\Driver\NativeRegex;
 use Railt\Lexer\LexerInterface;
+use Railt\Parser\Grammar;
 use Railt\Parser\Parser;
 use Railt\Parser\Builder\Definition\Alternation;
 use Railt\Parser\Builder\Definition\Concatenation;
@@ -27,7 +28,7 @@ class SDLParser extends Parser
      */
     public function __construct()
     {
-        parent::__construct($this->getLexer(), [
+        parent::__construct($this->getLexer(), new Grammar([
             0                                 => new Repetition(0, 0, -1, 'Directive', null),
             1                                 => new Repetition(1, 0, -1, 'Definition', null),
             'Document'                        => (new Concatenation('Document', [0, 1], 'Document'))->setDefaultId('Document'),
@@ -259,7 +260,7 @@ class SDLParser extends Parser
             'DirectiveArguments'              => new Concatenation('DirectiveArguments', [225, 226, 227], null),
             229                               => new Terminal(229, 'T_COLON', false),
             'DirectiveArgumentPair'           => new Concatenation('DirectiveArgumentPair', ['Key', 229, 'Value'], 'Argument'),
-        ], 'Document');
+        ], 'Document'));
     }
 
     /**

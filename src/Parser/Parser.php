@@ -68,27 +68,20 @@ class Parser implements ParserInterface
     private $todo;
 
     /**
-     * @var array|Rule[]
+     * @var Grammar
      */
-    private $rules;
-
-    /**
-     * @var string
-     */
-    private $root;
+    private $grammar;
 
     /**
      * AbstractParser constructor.
      *
      * @param LexerInterface $lexer
-     * @param array $rules
-     * @param string $root
+     * @param Grammar $grammar
      */
-    public function __construct(LexerInterface $lexer, array $rules, string $root)
+    public function __construct(LexerInterface $lexer, Grammar $grammar)
     {
         $this->lexer = $lexer;
-        $this->rules = $rules;
-        $this->root = $root;
+        $this->grammar = $grammar;
     }
 
     /**
@@ -109,7 +102,7 @@ class Parser implements ParserInterface
     {
         $trace = $this->trace($input);
 
-        $builder = new Builder($trace, $this->rules, \Closure::fromCallable([$this, 'create']));
+        $builder = new Builder($trace, $this->grammar, \Closure::fromCallable([$this, 'create']));
 
         return $builder->build();
     }
@@ -157,8 +150,8 @@ class Parser implements ParserInterface
 
         $this->trace = [];
 
-        $openRule = new Entry($this->root, 0, [
-            $closeRule = new Escape($this->root, 0),
+        $openRule = new Entry($this->grammar->rootId(), 0, [
+            $closeRule = new Escape($this->grammar->rootId(), 0),
         ]);
 
         $this->todo = [$closeRule, $openRule];
@@ -206,7 +199,7 @@ class Parser implements ParserInterface
             if ($rule instanceof Escape) {
                 $this->addTrace($rule);
             } else {
-                $out = $this->reduce($this->rules[$rule->getName()], $rule->getState());
+                $out = $this->reduce($this->grammar->get($rule->getName()), $rule->getState());
 
                 if ($out === false && $this->backtrack() === false) {
                     return false;
@@ -375,9 +368,9 @@ class Parser implements ParserInterface
             $last = \array_pop($this->trace);
 
             if ($last instanceof Entry) {
-                $found = $this->rules[$last->getName()] instanceof Alternation;
+                $found = $this->grammar->get($last->getName()) instanceof Alternation;
             } elseif ($last instanceof Escape) {
-                $found = $this->rules[$last->getName()] instanceof Repetition;
+                $found = $this->grammar->get($last->getName()) instanceof Repetition;
             } elseif ($last instanceof Lexeme) {
                 if (! $this->stream->prev()) {
                     return false;

@@ -28,7 +28,7 @@ class PP2GrammarParser extends Parser
      */
     public function __construct()
     {
-        parent::__construct($this->getLexer(), [
+        parent::__construct($this->getLexer(), new Grammar([
             0                           => new Repetition(0, 0, -1, '__definition', null),
             'Grammar'                   => new Concatenation('Grammar', [0], 'Grammar'),
             '__definition'              => new Alternation('__definition', ['TokenDefinition', 'PragmaDefinition', 'IncludeDefinition', 'RuleDefinition'], null),
@@ -93,7 +93,7 @@ class PP2GrammarParser extends Parser
             61                          => new Terminal(61, 'T_REPEAT_EXACTLY_N', true),
             62                          => new Concatenation(62, [61], 'Quantifier'),
             'Quantifier'                => new Alternation('Quantifier', [48, 50, 52, 54, 56, 58, 60, 62], null),
-        ], 'Grammar');
+        ], 'Grammar'));
     }
 
     /**

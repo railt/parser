@@ -11,6 +11,7 @@ namespace Railt\Tests\Parser\Impl;
 
 use Railt\Lexer\Driver\NativeRegex;
 use Railt\Lexer\LexerInterface;
+use Railt\Parser\Grammar;
 use Railt\Parser\Parser;
 use Railt\Parser\Builder\Definition\Alternation;
 use Railt\Parser\Builder\Definition\Concatenation;
@@ -172,7 +173,7 @@ class GraphQLParser extends Parser
      */
     public function __construct()
     {
-        parent::__construct($this->createLexer(), $this->createGrammarRules(), static::PARSER_ROOT_RULE);
+        parent::__construct($this->createLexer(), new Grammar($this->createGrammarRules(), static::PARSER_ROOT_RULE));
     }
 
     /**

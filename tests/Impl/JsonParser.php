@@ -11,6 +11,7 @@ namespace Railt\Tests\Parser\Impl;
 
 use Railt\Lexer\Driver\NativeRegex;
 use Railt\Lexer\LexerInterface;
+use Railt\Parser\Grammar;
 use Railt\Parser\Parser;
 use Railt\Parser\Builder\Definition\Alternation;
 use Railt\Parser\Builder\Definition\Concatenation;
@@ -27,7 +28,7 @@ class JsonParser extends Parser
      */
     public function __construct()
     {
-        parent::__construct($this->getLexer(), [
+        parent::__construct($this->getLexer(), new Grammar([
             0        => new Terminal(0, 'true', true),
             1        => new Terminal(1, 'false', true),
             2        => new Terminal(2, 'null', true),
@@ -50,7 +51,7 @@ class JsonParser extends Parser
             19       => new Repetition(19, 0, -1, 18, null),
             20       => new Terminal(20, '_bracket', false),
             'array'  => (new Concatenation('array', [15, 16, 19, 20], null))->setDefaultId('array'),
-        ], 'value');
+        ], 'value'));
     }
 
     /**
