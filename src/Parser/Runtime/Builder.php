@@ -77,23 +77,21 @@ class Builder implements BuilderInterface
 
         while ($i < $max) {
             $trace = $this->trace[$i];
+            $name = $trace->getName();
 
             if ($trace instanceof Entry) {
-                $ruleName = $trace->getName();
-                $rule = $this->grammar->get($ruleName);
-                $isRule = $trace->isTransitional() === false;
                 $nextTrace = $this->trace[$i + 1];
-                $id = $rule->getNodeId();
+                $id = $this->grammar->getNodeId($name);
 
                 // Optimization: Skip empty trace sequence.
-                if ($nextTrace instanceof Escape && $ruleName === $nextTrace->getName()) {
+                if ($nextTrace instanceof Escape && $name === $nextTrace->getName()) {
                     $i += 2;
 
                     continue;
                 }
 
-                if ($isRule === true) {
-                    $children[] = $ruleName;
+                if (! $this->grammar->isTransitional($name)) {
+                    $children[] = $name;
                 }
 
                 if ($id !== null) {
@@ -102,7 +100,7 @@ class Builder implements BuilderInterface
 
                 $i = $this->buildTree($i + 1, $children);
 
-                if ($isRule === false) {
+                if ($this->grammar->isTransitional($name)) {
                     continue;
                 }
 
@@ -116,13 +114,13 @@ class Builder implements BuilderInterface
                         $handle[] = $pop;
                     } elseif (\is_array($pop) && $childId === null) {
                         $childId = \reset($pop);
-                    } elseif ($ruleName === $pop) {
+                    } elseif ($name === $pop) {
                         break;
                     }
                 } while ($pop !== null);
 
                 if ($childId === null) {
-                    $childId = $rule->getDefaultId();
+                    $childId = $this->grammar->getDefaultId($name);
                 }
 
                 if ($childId === null) {
