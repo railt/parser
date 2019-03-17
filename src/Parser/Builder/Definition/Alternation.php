@@ -11,6 +11,7 @@ namespace Railt\Parser\Builder\Definition;
 
 /**
  * Class Alternation
+ * @deprecated Should be refactored
  */
 class Alternation extends Rule
 {

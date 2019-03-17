@@ -11,6 +11,7 @@ namespace Railt\Parser\Builder\Definition;
 
 /**
  * Class Repetition
+ * @deprecated Should be refactored
  */
 class Repetition extends Rule
 {

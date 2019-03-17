@@ -235,16 +235,16 @@ class Parser implements ParserInterface
         }
 
         switch (true) {
-            case $current instanceof Terminal:
+            case $this->grammar->isTerminal($current->getId()):
                 return $this->parseTerminal($current);
 
-            case $current instanceof Concatenation:
+            case $this->grammar->isConcatenation($current->getId()):
                 return $this->parseConcatenation($current);
 
-            case $current instanceof Alternation:
+            case $this->grammar->isAlternation($current->getId()):
                 return $this->parseAlternation($current, $next);
 
-            case $current instanceof Repetition:
+            case $this->grammar->isRepetition($current->getId()):
                 return $this->parseRepetition($current, $next);
         }
 

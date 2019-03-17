@@ -11,6 +11,7 @@ namespace Railt\Parser\Builder\Definition;
 
 /**
  * Class Terminal
+ * @deprecated Should be refactored
  */
 class Terminal extends Rule
 {
@@ -50,6 +51,7 @@ class Terminal extends Rule
     /**
      * Get token name.
      *
+     * @deprecated Should be refactored
      * @return string
      */
     public function getTokenName(): string
@@ -59,6 +61,8 @@ class Terminal extends Rule
 
     /**
      * Check whether the token is kept in the AST or not.
+     *
+     * @deprecated Should be refactored
      * @return bool
      */
     public function isKept(): bool

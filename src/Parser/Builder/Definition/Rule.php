@@ -11,8 +11,9 @@ namespace Railt\Parser\Builder\Definition;
 
 /**
  * Class Rule
+ * @deprecated Should be refactored
  */
-abstract class Rule
+abstract class Rule implements Identifiable
 {
     /**
      * Rule name.
@@ -65,52 +66,17 @@ abstract class Rule
     }
 
     /**
-     * @param int|string $child
-     * @param int|string $relation
-     * @return Rule
+     * @return int|string
      */
-    public function addAfter($child, $relation): self
+    public function getId()
     {
-        $result = [];
-
-        foreach ($this->children as $haystack) {
-            $result[] = $haystack;
-
-            if ($haystack === $child) {
-                $result[] = $relation;
-            }
-        }
-
-        $this->children = $result;
-
-        return $this;
-    }
-
-    /**
-     * @param int|string $child
-     * @param int|string $relation
-     * @return Rule
-     */
-    public function addBefore($child, $relation): self
-    {
-        $result = [];
-
-        foreach ($this->children as $haystack) {
-            if ($haystack === $child) {
-                $result[] = $relation;
-            }
-
-            $result[] = $haystack;
-        }
-
-        $this->children = $result;
-
-        return $this;
+        return $this->name;
     }
 
     /**
      * Get rule name.
      *
+     * @deprecated Should be refactored
      * @return string|int
      */
     public function getName()
@@ -121,6 +87,7 @@ abstract class Rule
     /**
      * Get rule's children.
      *
+     * @deprecated Should be refactored
      * @return int|int[]|string|string[]
      */
     public function getChildren()
@@ -131,6 +98,7 @@ abstract class Rule
     /**
      * Get node ID.
      *
+     * @deprecated Should be refactored
      * @return string|null
      */
     public function getNodeId(): ?string
@@ -141,6 +109,7 @@ abstract class Rule
     /**
      * Get default ID.
      *
+     * @deprecated Should be refactored
      * @return string|null
      */
     public function getDefaultId(): ?string
@@ -149,6 +118,8 @@ abstract class Rule
     }
 
     /**
+     *
+     * @deprecated Should be refactored
      * @param string|null $defaultId
      * @return Rule
      */

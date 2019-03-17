@@ -10,9 +10,12 @@ declare(strict_types=1);
 namespace Railt\Parser\Builder\Definition;
 
 /**
- * Class Concatenation
- * @deprecated Should be refactored
+ * Interface Identifiable
  */
-class Concatenation extends Rule
+interface Identifiable
 {
+    /**
+     * @return string|int
+     */
+    public function getId();
 }

@@ -9,13 +9,19 @@ declare(strict_types=1);
 
 namespace Railt\Parser;
 
+use Railt\Parser\Builder\Definition\Alternation;
+use Railt\Parser\Builder\Definition\Concatenation;
+use Railt\Parser\Builder\Definition\Repetition;
+use Railt\Parser\Builder\Definition\Rule;
+use Railt\Parser\Builder\Definition\Terminal;
+
 /**
  * Class Grammar
  */
 class Grammar
 {
     /**
-     * @var array
+     * @var array|Rule[]
      */
     private $definitions;
 
@@ -46,10 +52,73 @@ class Grammar
 
     /**
      * @param int|string $rule
-     * @return mixed
+     * @return Rule
      */
-    public function get($rule)
+    public function get($rule): Rule
     {
         return $this->definitions[$rule];
+    }
+
+    /**
+     * @param string|int $id
+     * @return bool
+     */
+    public function isTerminal($id): bool
+    {
+        return $this->definitions[$id] instanceof Terminal;
+    }
+
+    /**
+     * @param string|int $id
+     * @return bool
+     */
+    public function isConcatenation($id): bool
+    {
+        return $this->definitions[$id] instanceof Concatenation;
+    }
+
+    /**
+     * @param string|int $id
+     * @return bool
+     */
+    public function isAlternation($id): bool
+    {
+        return $this->definitions[$id] instanceof Alternation;
+    }
+
+    /**
+     * @param string|int $id
+     * @return bool
+     */
+    public function isRepetition($id): bool
+    {
+        return $this->definitions[$id] instanceof Repetition;
+    }
+
+    /**
+     * @param string|int $id
+     * @return string|null
+     */
+    public function getNodeId($id): ?string
+    {
+        return $this->definitions[$id]->getNodeId();
+    }
+
+    /**
+     * @param string|int $id
+     * @return string|null
+     */
+    public function getDefaultId($id): ?string
+    {
+        return $this->definitions[$id]->getDefaultId();
+    }
+
+    /**
+     * @param string|int $id
+     * @return bool
+     */
+    public function isTransitional($id): bool
+    {
+        return \is_int($id);
     }
 }
