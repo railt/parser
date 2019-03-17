@@ -9,7 +9,7 @@ declare(strict_types=1);
 
 namespace Railt\Tests\Parser;
 
-use Railt\Parser\TokenStream\Buffer;
+use Railt\Parser\Runtime\Buffer;
 
 /**
  * Class BufferIteratorTestCase
