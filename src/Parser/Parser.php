@@ -423,7 +423,7 @@ class Parser implements ParserInterface
                 } while ($pop !== null);
 
                 if ($childId === null) {
-                    $childId = $this->grammar->getDefaultId($name);
+                    $childId = $this->grammar->getNodeId($name);
                 }
 
                 if ($childId === null) {

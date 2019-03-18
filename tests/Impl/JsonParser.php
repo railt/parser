@@ -51,16 +51,16 @@ class JsonParser extends Parser
             new Concatenation(9, [8, 'pair'], 'object'),
             new Repetition(10, 0, -1, 9, null),
             new Terminal(11, '_brace', false),
-            (new Concatenation('object', [6, 7, 10, 11], null))->setDefaultId('object'),
+            new Concatenation('object', [6, 7, 10, 11], 'object'),
             new Terminal(13, 'colon', false),
-            (new Concatenation('pair', ['string', 13, 'value'], 'pair'))->setDefaultId('pair'),
+            new Concatenation('pair', ['string', 13, 'value'], 'pair'),
             new Terminal(15, 'bracket_', false),
             new Repetition(16, 0, 1, 'value', null),
             new Terminal(17, 'comma', false),
             new Concatenation(18, [17, 'value'], 'array'),
             new Repetition(19, 0, -1, 18, null),
             new Terminal(20, '_bracket', false),
-            (new Concatenation('array', [15, 16, 19, 20], null))->setDefaultId('array'),
+            new Concatenation('array', [15, 16, 19, 20], 'array'),
         ];
     }
 

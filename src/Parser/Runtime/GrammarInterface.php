@@ -51,12 +51,6 @@ interface GrammarInterface
 
     /**
      * @param string|int $id
-     * @return string|null
-     */
-    public function getDefaultId($id): ?string;
-
-    /**
-     * @param string|int $id
      * @return bool
      */
     public function isTransitional($id): bool;

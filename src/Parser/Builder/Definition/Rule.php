@@ -37,13 +37,6 @@ abstract class Rule
     protected $nodeId;
 
     /**
-     * Default ID.
-     *
-     * @var string
-     */
-    protected $defaultId;
-
-    /**
      * Whether the rule is transitional or not (i.e. not declared in the grammar
      * but created by the analyzer).
      *
@@ -104,29 +97,5 @@ abstract class Rule
     public function getNodeId(): ?string
     {
         return $this->nodeId;
-    }
-
-    /**
-     * Get default ID.
-     *
-     * @deprecated Should be refactored
-     * @return string|null
-     */
-    public function getDefaultId(): ?string
-    {
-        return $this->defaultId;
-    }
-
-    /**
-     *
-     * @deprecated Should be refactored
-     * @param string|null $defaultId
-     * @return Rule
-     */
-    public function setDefaultId(?string $defaultId): self
-    {
-        $this->defaultId = $defaultId;
-
-        return $this;
     }
 }

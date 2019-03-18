@@ -46,11 +46,6 @@ class Builder implements BuilderInterface, GrammarInterface
     /**
      * @var array
      */
-    private $aliases = [];
-
-    /**
-     * @var array
-     */
     private $transitional = [];
 
     /**
@@ -193,10 +188,6 @@ class Builder implements BuilderInterface, GrammarInterface
 
                 $this->goto[$index] = $map($rule->getChildren());
 
-                if ($rule->getDefaultId()) {
-                    $this->aliases[$index] = $rule->getDefaultId();
-                }
-
                 if (\is_int($rule->getName())) {
                     $this->transitional[] = $index;
                 }
@@ -259,15 +250,6 @@ class Builder implements BuilderInterface, GrammarInterface
     public function getNodeId($id): ?string
     {
         return $this->actions[$id][self::ACTION_NAME] ?? null;
-    }
-
-    /**
-     * @param string|int $id
-     * @return string|null
-     */
-    public function getDefaultId($id): ?string
-    {
-        return $this->aliases[$id] ?? null;
     }
 
     /**
