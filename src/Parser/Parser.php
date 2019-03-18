@@ -194,12 +194,12 @@ class Parser implements ParserInterface
     private function unfold(): bool
     {
         while (0 < \count($this->todo)) {
-            $rule = \array_pop($this->todo);
+            $trace = \array_pop($this->todo);
 
-            if ($rule instanceof Escape) {
-                $this->addTrace($rule);
+            if ($trace instanceof Escape) {
+                $this->addTrace($trace);
             } else {
-                $out = $this->reduce($this->grammar->get($rule->getName()), $rule->getState());
+                $out = $this->reduce($trace->getName(), $trace->getState());
 
                 if ($out === false && $this->backtrack() === false) {
                     return false;
@@ -224,27 +224,27 @@ class Parser implements ParserInterface
     }
 
     /**
-     * @param Rule $current
-     * @param string|int $next
+     * @param string|int $current
+     * @param int $next
      * @return bool
      */
-    private function reduce(Rule $current, $next): bool
+    private function reduce($current, int $next): bool
     {
         if (! $this->stream->current()) {
             return false;
         }
 
         switch (true) {
-            case $this->grammar->isTerminal($current->getId()):
+            case $this->grammar->isTerminal($current):
                 return $this->parseTerminal($current);
 
-            case $this->grammar->isConcatenation($current->getId()):
+            case $this->grammar->isConcatenation($current):
                 return $this->parseConcatenation($current);
 
-            case $this->grammar->isAlternation($current->getId()):
+            case $this->grammar->isAlternation($current):
                 return $this->parseAlternation($current, $next);
 
-            case $this->grammar->isRepetition($current->getId()):
+            case $this->grammar->isRepetition($current):
                 return $this->parseRepetition($current, $next);
         }
 
@@ -252,60 +252,60 @@ class Parser implements ParserInterface
     }
 
     /**
-     * @param Terminal $token
+     * @param string|int $id
      * @return bool
      */
-    private function parseTerminal(Terminal $token): bool
+    private function parseTerminal($id): bool
     {
         /** @var TokenInterface $current */
         $current = $this->stream->current();
 
-        if ($token->getTokenName() !== $current->getName()) {
+        if ($this->grammar->getTokenName($id) !== $current->getName()) {
             return false;
         }
 
         \array_pop($this->todo);
 
-        $this->addTrace(new Lexeme($current, $token->isKept()));
+        $this->addTrace(new Lexeme($current, $this->grammar->isKept($id)));
         $this->errorToken = $this->stream->next();
 
         return true;
     }
 
     /**
-     * @param Concatenation $concat
+     * @param string|int $id
      * @return bool
      */
-    private function parseConcatenation(Concatenation $concat): bool
+    private function parseConcatenation($id): bool
     {
-        $this->addTrace(new Entry($concat->getName()));
+        $this->addTrace(new Entry($id));
 
-        $children = $concat->getChildren();
+        $children = $this->grammar->getChildren($id);
 
-        for ($i = \count($children) - 1; $i >= 0; --$i) {
-            $nextRule = $children[$i];
-
-            $this->todo[] = new Escape($nextRule, 0);
-            $this->todo[] = new Entry($nextRule, 0);
+        foreach (\array_reverse($children) as $child) {
+            $this->todo[] = new Escape($child);
+            $this->todo[] = new Entry($child);
         }
 
         return true;
     }
 
     /**
-     * @param Alternation $choice
-     * @param string|int $next
+     * @param string|int $id
+     * @param int $next
      * @return bool
      */
-    private function parseAlternation(Alternation $choice, $next): bool
+    private function parseAlternation($id, int $next): bool
     {
-        $children = $choice->getChildren();
+        $children = $this->grammar->getChildren($id);
+
+        echo $next;
 
         if ($next >= \count($children)) {
             return false;
         }
 
-        $this->addTrace(new Entry($choice->getName(), $next, $this->todo));
+        $this->addTrace(new Entry($id, $next, $this->todo));
 
         $nextRule = $children[$next];
 
@@ -316,23 +316,22 @@ class Parser implements ParserInterface
     }
 
     /**
-     * @param Repetition $repeat
-     * @param string|int $next
+     * @param string|int $id
+     * @param int $next
      * @return bool
      */
-    private function parseRepetition(Repetition $repeat, $next): bool
+    private function parseRepetition($id, int $next): bool
     {
-        $nextRule = $repeat->getChildren();
+        $nextRule = $this->grammar->getChildren($id);
 
         if ($next === 0) {
-            $name = $repeat->getName();
-            $min = $repeat->getMin();
+            $min = $this->grammar->getMin($id);
 
-            $this->addTrace(new Entry($name, $min));
+            $this->addTrace(new Entry($id, $min));
 
             \array_pop($this->todo);
 
-            $this->todo[] = new Escape($name, $min, $this->todo);
+            $this->todo[] = new Escape($id, $min, $this->todo);
 
             for ($i = 0; $i < $min; ++$i) {
                 $this->todo[] = new Escape($nextRule, 0);
@@ -342,13 +341,13 @@ class Parser implements ParserInterface
             return true;
         }
 
-        $max = $repeat->getMax();
+        $max = $this->grammar->getMax($id);
 
         if ($max !== -1 && $next > $max) {
             return false;
         }
 
-        $this->todo[] = new Escape($repeat->getName(), $next, $this->todo);
+        $this->todo[] = new Escape($id, $next, $this->todo);
         $this->todo[] = new Escape($nextRule, 0);
         $this->todo[] = new Entry($nextRule, 0);
 
@@ -368,13 +367,11 @@ class Parser implements ParserInterface
             $last = \array_pop($this->trace);
 
             if ($last instanceof Entry) {
-                $found = $this->grammar->get($last->getName()) instanceof Alternation;
+                $found = $this->grammar->isAlternation($last->getName());
             } elseif ($last instanceof Escape) {
-                $found = $this->grammar->get($last->getName()) instanceof Repetition;
-            } elseif ($last instanceof Lexeme) {
-                if (! $this->stream->prev()) {
-                    return false;
-                }
+                $found = $this->grammar->isRepetition($last->getName());
+            } elseif ($last instanceof Lexeme && ! $this->stream->prev()) {
+                return false;
             }
         } while (0 < \count($this->trace) && $found === false);
 

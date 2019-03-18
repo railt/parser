@@ -21,14 +21,34 @@ use Railt\Parser\Builder\Definition\Terminal;
 class Grammar
 {
     /**
-     * @var array|Rule[]
+     * @var int
+     */
+    public const TYPE_ALTERNATION = 0x00;
+
+    /**
+     * @var int
+     */
+    public const TYPE_CONCATENATION = 0x01;
+
+    /**
+     * @var int
+     */
+    public const TYPE_REPETITION = 0x02;
+
+    /**
+     * @var int
+     */
+    public const TYPE_TERMINAL = 0x03;
+
+    /**
+     * @var array|Rule[]|Terminal[]|Repetition[]
      */
     private $definitions;
 
     /**
      * @var string
      */
-    private $root;
+    protected $root;
 
     /**
      * Grammar constructor.
@@ -42,21 +62,17 @@ class Grammar
         $this->root = $root;
     }
 
+    private function build(array $definitions)
+    {
+
+    }
+
     /**
      * @return string
      */
     public function rootId(): string
     {
         return $this->root;
-    }
-
-    /**
-     * @param int|string $rule
-     * @return Rule
-     */
-    public function get($rule): Rule
-    {
-        return $this->definitions[$rule];
     }
 
     /**
@@ -120,5 +136,50 @@ class Grammar
     public function isTransitional($id): bool
     {
         return \is_int($id);
+    }
+
+    /**
+     * @param string|int $id
+     * @return bool
+     */
+    public function isKept($id): bool
+    {
+        return $this->definitions[$id]->isKept();
+    }
+
+    /**
+     * @param string|int $id
+     * @return string
+     */
+    public function getTokenName($id): string
+    {
+        return $this->definitions[$id]->getTokenName();
+    }
+
+    /**
+     * @param string|int $id
+     * @return int|int[]|string|string[]
+     */
+    public function getChildren($id)
+    {
+        return $this->definitions[$id]->getChildren();
+    }
+
+    /**
+     * @param string|int $id
+     * @return int
+     */
+    public function getMin($id): int
+    {
+        return $this->definitions[$id]->getMin();
+    }
+
+    /**
+     * @param string|int $id
+     * @return int
+     */
+    public function getMax($id): int
+    {
+        return $this->definitions[$id]->getMax();
     }
 }

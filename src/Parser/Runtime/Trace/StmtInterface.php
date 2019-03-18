@@ -15,11 +15,6 @@ namespace Railt\Parser\Runtime\Trace;
 interface StmtInterface extends TraceInterface
 {
     /**
-     * @return bool
-     */
-    public function isTransitional(): bool;
-
-    /**
      * @return array
      */
     public function getJumps(): array;

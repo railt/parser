@@ -54,12 +54,4 @@ abstract class Statement extends TraceItem implements StmtInterface
     {
         return $this->state;
     }
-
-    /**
-     * @return bool
-     */
-    public function isTransitional(): bool
-    {
-        return \is_int($this->name);
-    }
 }

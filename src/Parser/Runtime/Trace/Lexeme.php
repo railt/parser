@@ -42,18 +42,18 @@ class Lexeme extends TraceItem implements LexemeInterface
     }
 
     /**
-     * @return string
-     */
-    public function getValue(): string
-    {
-        return $this->value;
-    }
-
-    /**
      * @return bool
      */
     public function isKept(): bool
     {
         return $this->kept;
+    }
+
+    /**
+     * @return string
+     */
+    public function getValue(): string
+    {
+        return $this->value;
     }
 }

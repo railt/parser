@@ -18,9 +18,4 @@ interface LexemeInterface extends TraceInterface
      * @return string
      */
     public function getValue(): string;
-
-    /**
-     * @return bool
-     */
-    public function isKept(): bool;
 }
