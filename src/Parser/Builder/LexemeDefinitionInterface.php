@@ -10,15 +10,14 @@ declare(strict_types=1);
 namespace Railt\Parser\Builder;
 
 /**
- * Interface DefinitionInterface
+ * Interface LexemeDefinitionInterface
  */
-interface LexemeDefinitionInterface extends DefinitionInterface
+interface LexemeDefinitionInterface
 {
     /**
-     * @param bool $keep
-     * @return LexemeDefinitionInterface|$this
+     * @return string
      */
-    public function keep(bool $keep = true): LexemeDefinitionInterface;
+    public function getName(): string;
 
     /**
      * @return bool

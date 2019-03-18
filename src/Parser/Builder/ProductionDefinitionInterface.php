@@ -12,27 +12,16 @@ namespace Railt\Parser\Builder;
 /**
  * Interface ProductionDefinitionInterface
  */
-interface ProductionDefinitionInterface extends DefinitionInterface
+interface ProductionDefinitionInterface
 {
-    /**
-     * @param string $name
-     * @return ProductionDefinitionInterface|$this
-     */
-    public function as(string $name): ProductionDefinitionInterface;
-
     /**
      * @return string|null
      */
     public function getAlias(): ?string;
 
     /**
-     * @param bool $transactional
-     * @return ProductionDefinitionInterface|$this
+     * @param string|null $alias
+     * @return ProductionDefinitionInterface
      */
-    public function transactional(bool $transactional = true): ProductionDefinitionInterface;
-
-    /**
-     * @return bool
-     */
-    public function isTransactional(): bool;
+    public function as(string $alias): ProductionDefinitionInterface;
 }

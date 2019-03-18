@@ -9,6 +9,7 @@ declare(strict_types=1);
 
 namespace Railt\Parser;
 
+use Railt\Parser\Builder\DefinitionInterface;
 use Railt\Parser\Builder\ProvidesGrammar;
 
 /**
@@ -16,4 +17,15 @@ use Railt\Parser\Builder\ProvidesGrammar;
  */
 interface BuilderInterface extends ProvidesGrammar
 {
+    /**
+     * @param iterable $definitions
+     * @return BuilderInterface|$this
+     */
+    public function addMany(iterable $definitions): BuilderInterface;
+
+    /**
+     * @param DefinitionInterface $definition
+     * @return BuilderInterface|$this
+     */
+    public function add(DefinitionInterface $definition): BuilderInterface;
 }

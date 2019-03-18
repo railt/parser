@@ -9,26 +9,23 @@ declare(strict_types=1);
 
 namespace Railt\Parser\Builder\Definition;
 
+use Railt\Parser\Builder\LexemeDefinitionInterface;
+
 /**
- * Class Terminal
- * @deprecated Should be refactored
+ * Class Lexeme
  */
-class Terminal extends Rule
+class Lexeme extends Definition implements LexemeDefinitionInterface
 {
     /**
      * Token name.
+     *
      * @var string
      */
-    protected $tokenName;
-
-    /**
-     * Token value.
-     * @var string
-     */
-    protected $value;
+    protected $name;
 
     /**
      * Whether the token is kept or not in the AST.
+     *
      * @var bool
      */
     protected $kept = false;
@@ -42,27 +39,25 @@ class Terminal extends Rule
      */
     public function __construct($name, string $tokenName, bool $kept = false)
     {
-        parent::__construct($name, null);
+        parent::__construct($name);
 
-        $this->tokenName = $tokenName;
+        $this->name = $tokenName;
         $this->kept = $kept;
     }
 
     /**
      * Get token name.
      *
-     * @deprecated Should be refactored
      * @return string
      */
-    public function getTokenName(): string
+    public function getName(): string
     {
-        return $this->tokenName;
+        return $this->name;
     }
 
     /**
      * Check whether the token is kept in the AST or not.
      *
-     * @deprecated Should be refactored
      * @return bool
      */
     public function isKept(): bool

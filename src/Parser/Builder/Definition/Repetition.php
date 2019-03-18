@@ -11,21 +11,27 @@ namespace Railt\Parser\Builder\Definition;
 
 /**
  * Class Repetition
- * @deprecated Should be refactored
  */
-class Repetition extends Rule
+class Repetition extends Production
 {
     /**
      * Minimum bound.
+     *
      * @var int
      */
     protected $min = 0;
 
     /**
      * Maximum bound.
+     *
      * @var int
      */
     protected $max = 0;
+
+    /**
+     * @var string|int
+     */
+    protected $goto;
 
     /**
      * Repetition constructor.
@@ -33,22 +39,32 @@ class Repetition extends Rule
      * @param string|int $name Rule name.
      * @param int $min Minimum bound.
      * @param int $max Maximum bound.
-     * @param mixed $children Children.
+     * @param string|int $then Children.
      * @param string|null $nodeId Node ID.
      */
-    public function __construct($name, $min, $max, $children, string $nodeId = null)
+    public function __construct($name, $min, $max, $then, string $nodeId = null)
     {
         $this->min = \max(0, (int)$min);
         $this->max = \max(-1, (int)$max);
+        $this->goto = $then;
 
-        parent::__construct($name, $children, $nodeId);
+        parent::__construct($name, $nodeId);
 
         \assert($min <= $max || $max === -1,
             \sprintf('Cannot repeat with a min (%d) greater than max (%d).', $min, $max));
     }
 
     /**
+     * @return int|string
+     */
+    public function getGoto()
+    {
+        return $this->goto;
+    }
+
+    /**
      * Get minimum bound.
+     *
      * @return int
      */
     public function getMin(): int
@@ -58,6 +74,7 @@ class Repetition extends Rule
 
     /**
      * Get maximum bound.
+     *
      * @return int
      */
     public function getMax(): int

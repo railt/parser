@@ -11,299 +11,123 @@ namespace Railt\Parser;
 
 use Railt\Parser\Builder\Definition\Alternation;
 use Railt\Parser\Builder\Definition\Concatenation;
+use Railt\Parser\Builder\Definition\Lexeme;
 use Railt\Parser\Builder\DefinitionInterface;
-use Railt\Parser\Builder\LexemeDefinitionInterface;
 use Railt\Parser\Builder\Definition\Repetition;
-use Railt\Parser\Builder\Definition\Rule;
-use Railt\Parser\Builder\Definition\Terminal;
+use Railt\Parser\Builder\Grammar;
+use Railt\Parser\Builder\ProductionDefinitionInterface;
 use Railt\Parser\Runtime\GrammarInterface;
 
 /**
  * Class Builder
  */
-class Builder implements BuilderInterface, GrammarInterface
+class Builder implements BuilderInterface
 {
     /**
-     * @var int
-     */
-    public const TYPE_ALTERNATION = 0x00;
-
-    /**
-     * @var int
-     */
-    public const TYPE_CONCATENATION = 0x01;
-
-    /**
-     * @var int
-     */
-    public const TYPE_REPETITION = 0x02;
-
-    /**
-     * @var int
-     */
-    public const TYPE_TERMINAL = 0x03;
-
-    /**
-     * @var array
-     */
-    private $transitional = [];
-
-    /**
-     * @var array
-     */
-    private $keep = [];
-
-    /**
-     * @var int
+     * @var int|string
      */
     private $root;
 
     /**
      * @var array
      */
-    private $mappings = [];
-
-    /**
-     * @var array
-     */
-    private $actions = [];
-
-    /**
-     * @var array
-     */
-    private $goto = [];
-
-    /**
-     * @var int
-     */
-    private const ACTION_TYPE = 0x00;
-
-    /**
-     * @var int
-     */
-    private const ACTION_NAME = 0x01;
-
-    /**
-     * @var array
-     */
-    private $repeat = [];
-
-    /**
-     * @var int
-     */
-    private const REPEAT_MIN = 0x00;
-
-    /**
-     * @var int
-     */
-    private const REPEAT_MAX = 0x01;
+    private $definitions = [];
 
     /**
      * Builder constructor.
      *
-     * @param array|Rule[] $rules
-     * @param string $root
+     * @param array|DefinitionInterface[] $definitions
+     * @param string|int $root
      */
-    public function __construct(array $rules, string $root)
+    public function __construct(array $definitions, $root)
     {
-        foreach ($rules as $rule) {
-            $this->mappings[$rule->getName()] = \count($this->mappings);
-        }
-
-        $this->root = $this->mappings[$root];
-        $this->create($rules);
+        $this->root = $root;
+        $this->addMany($definitions);
     }
 
     /**
-     * @param iterable|Rule[] $rules
+     * @param iterable|DefinitionInterface[] $definitions
      * @return BuilderInterface|$this
      */
-    public function create(iterable $rules): BuilderInterface
+    public function addMany(iterable $definitions): BuilderInterface
     {
-        $type = function ($rule): int {
-            switch (true) {
-                case $rule instanceof Alternation:
-                    return self::TYPE_ALTERNATION;
-                    break;
-                case $rule instanceof Concatenation:
-                    return self::TYPE_CONCATENATION;
-                    break;
-                case $rule instanceof Repetition:
-                    return self::TYPE_REPETITION;
-                    break;
-                case $rule instanceof Terminal:
-                    return self::TYPE_TERMINAL;
-                    break;
-                default:
-                    return 0;
-            }
-        };
-
-        $map = function ($children) {
-            if (\is_array($children)) {
-                $result = [];
-                foreach ($children as $child) {
-                    $result[] = $this->mappings[$child];
-                }
-                return $result;
-            }
-
-            if ($children) {
-                return $this->mappings[$children];
-            }
-
-            return null;
-        };
-
-        foreach ($rules as $rule) {
-            $index = $this->mappings[$rule->getName()];
-
-            if ($rule instanceof Terminal) {
-                $this->actions[$index] = [
-                    self::ACTION_TYPE => $type($rule),
-                    self::ACTION_NAME => $rule->getTokenName()
-                ];
-
-                if ($rule->isKept()) {
-                    $this->keep[] = $index;
-                }
-
-                $this->goto[$index] = null;
-
-                continue;
-            }
-
-            if ($rule instanceof Repetition) {
-                $this->repeat[$index] = [
-                    self::REPEAT_MIN => $rule->getMin(),
-                    self::REPEAT_MAX => $rule->getMax(),
-                ];
-            }
-
-            if ($rule instanceof Rule) {
-                $this->actions[$index] = [
-                    self::ACTION_TYPE => $type($rule),
-                    self::ACTION_NAME => $rule->getNodeId()
-                ];
-
-                $this->goto[$index] = $map($rule->getChildren());
-
-                if (\is_int($rule->getName())) {
-                    $this->transitional[] = $index;
-                }
-            }
+        foreach ($definitions as $definition) {
+            $this->add($definition);
         }
 
         return $this;
     }
 
     /**
-     * @return int|mixed|string|null
+     * @param DefinitionInterface $definition
+     * @return BuilderInterface|$this
      */
-    public function rootId()
+    public function add(DefinitionInterface $definition): BuilderInterface
     {
-        \assert($this->root !== null, 'Root id should be initialized');
+        $this->definitions[] = $definition;
 
-        return $this->root;
+        return $this;
     }
 
     /**
-     * @param string|int $id
-     * @return bool
+     * @return array
      */
-    public function isTerminal($id): bool
+    private function getMappings(): array
     {
-        return $this->actions[$id][self::ACTION_TYPE] === self::TYPE_TERMINAL;
+        $mappings = [];
+
+        foreach ($this->definitions as $definition) {
+            $mappings[$definition->getId()] = \count($mappings);
+        }
+
+        return $mappings;
     }
 
     /**
-     * @param string|int $id
-     * @return bool
-     */
-    public function isConcatenation($id): bool
-    {
-        return $this->actions[$id][self::ACTION_TYPE] === self::TYPE_CONCATENATION;
-    }
-
-    /**
-     * @param string|int $id
-     * @return bool
-     */
-    public function isAlternation($id): bool
-    {
-        return $this->actions[$id][self::ACTION_TYPE] === self::TYPE_ALTERNATION;
-    }
-
-    /**
-     * @param string|int $id
-     * @return bool
-     */
-    public function isRepetition($id): bool
-    {
-        return $this->actions[$id][self::ACTION_TYPE] === self::TYPE_REPETITION;
-    }
-
-    /**
-     * @param string|int $id
-     * @return string|null
-     */
-    public function getNodeId($id): ?string
-    {
-        return $this->actions[$id][self::ACTION_NAME] ?? null;
-    }
-
-    /**
-     * @param string|int $id
-     * @return bool
-     */
-    public function isTransitional($id): bool
-    {
-        return \in_array($id, $this->transitional, true);
-    }
-
-    /**
-     * @param string|int $id
-     * @return bool
-     */
-    public function isKept($id): bool
-    {
-        return \in_array($id, $this->keep, true);
-    }
-
-    /**
-     * @param string|int $id
-     * @return string
-     */
-    public function getTokenName($id): string
-    {
-        return $this->actions[$id][self::ACTION_NAME];
-    }
-
-    /**
-     * @param string|int $id
-     * @return int|int[]|string|string[]
-     */
-    public function getChildren($id)
-    {
-        return $this->goto[$id];
-    }
-
-    /**
-     * @param string|int $id
+     * @param DefinitionInterface $definition
      * @return int
      */
-    public function getMin($id): int
+    private function getType(DefinitionInterface $definition): int
     {
-        return $this->repeat[$id][self::REPEAT_MIN];
+        switch (true) {
+            case $definition instanceof Alternation:
+                return Grammar::TYPE_ALTERNATION;
+                break;
+
+            case $definition instanceof Concatenation:
+                return Grammar::TYPE_CONCATENATION;
+                break;
+
+            case $definition instanceof Repetition:
+                return Grammar::TYPE_REPETITION;
+                break;
+
+            case $definition instanceof Lexeme:
+                return Grammar::TYPE_TERMINAL;
+                break;
+            default:
+                return 0;
+        }
     }
 
     /**
-     * @param string|int $id
-     * @return int
+     * @param array|int|string $children
+     * @param array $mappings
+     * @return int|int[]
      */
-    public function getMax($id): int
+    private function map($children, array $mappings)
     {
-        return $this->repeat[$id][self::REPEAT_MAX];
+        if (\is_array($children)) {
+            $result = [];
+
+            foreach ($children as $child) {
+                $result[] = $mappings[$child];
+            }
+
+            return $result;
+        }
+
+        return $mappings[$children];
     }
 
     /**
@@ -311,6 +135,50 @@ class Builder implements BuilderInterface, GrammarInterface
      */
     public function getGrammar(): GrammarInterface
     {
-        return $this;
+        $mappings = $this->getMappings();
+
+        $grammar = new Grammar();
+        $grammar->root = $mappings[$this->root];
+
+        foreach ($this->definitions as $rule) {
+            $index = $this->map($rule->getId(), $mappings);
+
+            if ($rule instanceof Lexeme) {
+                $grammar->actions[$index] = [
+                    Grammar::ACTION_TYPE => $this->getType($rule),
+                    Grammar::ACTION_NAME => $rule->getName()
+                ];
+
+                if ($rule->isKept()) {
+                    $grammar->keep[] = $index;
+                }
+
+                $grammar->goto[$index] = null;
+
+                continue;
+            }
+
+            if ($rule instanceof Repetition) {
+                $grammar->repeat[$index] = [
+                    Grammar::REPEAT_MIN => $rule->getMin(),
+                    Grammar::REPEAT_MAX => $rule->getMax(),
+                ];
+            }
+
+            if ($rule instanceof ProductionDefinitionInterface) {
+                $grammar->actions[$index] = [
+                    Grammar::ACTION_TYPE => $this->getType($rule),
+                    Grammar::ACTION_NAME => $rule->getAlias()
+                ];
+
+                $grammar->goto[$index] = $this->map($rule->getGoto(), $mappings);
+
+                if (\is_int($rule->getId())) {
+                    $grammar->transitional[] = $index;
+                }
+            }
+        }
+
+        return $grammar;
     }
 }

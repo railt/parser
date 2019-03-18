@@ -15,7 +15,7 @@ namespace Railt\Parser\Builder;
 interface DefinitionInterface
 {
     /**
-     * @return int
+     * @return string|int
      */
-    public function getId(): int;
+    public function getId();
 }

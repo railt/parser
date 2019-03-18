@@ -16,8 +16,26 @@ use Railt\Parser\Builder\DefinitionInterface;
  */
 abstract class Definition implements DefinitionInterface
 {
-    public function getId(): int
+    /**
+     * @var string|int
+     */
+    protected $id;
+
+    /**
+     * Definition constructor.
+     *
+     * @param $id
+     */
+    public function __construct($id)
     {
-        throw new \LogicException('The ' . __METHOD__ . ' not implemented yet');
+        $this->id = $id;
+    }
+
+    /**
+     * @return int|string
+     */
+    public function getId()
+    {
+        return $this->id;
     }
 }
