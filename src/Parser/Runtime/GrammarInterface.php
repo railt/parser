@@ -15,9 +15,9 @@ namespace Railt\Parser\Runtime;
 interface GrammarInterface
 {
     /**
-     * @return string
+     * @return string|int
      */
-    public function rootId(): string;
+    public function rootId();
 
     /**
      * @param string|int $id

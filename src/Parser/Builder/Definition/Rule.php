@@ -13,7 +13,7 @@ namespace Railt\Parser\Builder\Definition;
  * Class Rule
  * @deprecated Should be refactored
  */
-abstract class Rule implements Identifiable
+abstract class Rule
 {
     /**
      * Rule name.

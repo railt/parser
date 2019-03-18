@@ -12,7 +12,6 @@ namespace Railt\Tests\Parser\Impl;
 use Railt\Lexer\Driver\NativeRegex;
 use Railt\Lexer\LexerInterface;
 use Railt\Parser\Builder;
-use Railt\Parser\Runtime\Grammar;
 use Railt\Parser\Parser;
 use Railt\Parser\Builder\Definition\Alternation;
 use Railt\Parser\Builder\Definition\Concatenation;
@@ -29,9 +28,7 @@ class JsonParser extends Parser
      */
     public function __construct()
     {
-        $builder = new Builder();
-        $builder->startsAt('value');
-        $builder->create($this->rules());
+        $builder = new Builder($this->rules(), 'value');
 
         parent::__construct($this->getLexer(), $builder->getGrammar());
     }

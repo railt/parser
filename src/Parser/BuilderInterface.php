@@ -16,9 +16,4 @@ use Railt\Parser\Builder\ProvidesGrammar;
  */
 interface BuilderInterface extends ProvidesGrammar
 {
-    /**
-     * @param string|int $id
-     * @return BuilderInterface
-     */
-    public function startsAt($id): self;
 }

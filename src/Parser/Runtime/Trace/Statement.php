@@ -42,7 +42,7 @@ abstract class Statement extends TraceItem implements StmtInterface
     /**
      * @return array
      */
-    public function getJumps(): array
+    public function goto(): array
     {
         return $this->jumps;
     }

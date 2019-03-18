@@ -28,9 +28,7 @@ class PP2GrammarParser extends Parser
      */
     public function __construct()
     {
-        $builder = new Builder();
-        $builder->startsAt('Grammar');
-        $builder->create($this->rules());
+        $builder = new Builder($this->rules(), 'Grammar');
 
         parent::__construct($this->getLexer(), $builder->getGrammar());
     }

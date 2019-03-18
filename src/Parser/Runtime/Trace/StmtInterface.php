@@ -17,7 +17,7 @@ interface StmtInterface extends TraceInterface
     /**
      * @return array
      */
-    public function getJumps(): array;
+    public function goto(): array;
 
     /**
      * @return int

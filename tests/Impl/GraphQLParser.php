@@ -167,9 +167,7 @@ class GraphQLParser extends Parser
      */
     public function __construct()
     {
-        $builder = new Builder();
-        $builder->startsAt('Document');
-        $builder->create($this->rules());
+        $builder = new Builder($this->rules(), 'Document');
 
         parent::__construct($this->createLexer(), $builder->getGrammar());
     }

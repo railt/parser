@@ -15,7 +15,7 @@ use Railt\Lexer\TokenInterface;
 /**
  * Class TokenStream
  */
-final class TokenStream extends Buffer
+final class TokenStream extends Buffer implements StreamInterface
 {
     /**
      * @return bool

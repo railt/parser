@@ -63,6 +63,7 @@ class BufferIteratorTestCase extends TestCase
      * @return void
      * @throws \PHPUnit\Framework\ExpectationFailedException
      * @throws \PHPUnit\Framework\Exception
+     * @throws \SebastianBergmann\RecursionContext\InvalidArgumentException
      */
     public function testIterableOverCrowdedBuffer(): void
     {
@@ -79,6 +80,7 @@ class BufferIteratorTestCase extends TestCase
      * @return void
      * @throws \PHPUnit\Framework\ExpectationFailedException
      * @throws \PHPUnit\Framework\Exception
+     * @throws \SebastianBergmann\RecursionContext\InvalidArgumentException
      */
     public function testUnchangedBufferVolume(): void
     {
@@ -105,6 +107,7 @@ class BufferIteratorTestCase extends TestCase
      * @return void
      * @throws \PHPUnit\Framework\ExpectationFailedException
      * @throws \PHPUnit\Framework\Exception
+     * @throws \SebastianBergmann\RecursionContext\InvalidArgumentException
      */
     public function testRewindableToAvailableVolume(): void
     {

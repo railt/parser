@@ -7,15 +7,15 @@
  */
 declare(strict_types=1);
 
-namespace Railt\Parser\Builder\Definition;
+namespace Railt\Parser\Builder;
 
 /**
- * Interface Identifiable
+ * Interface DefinitionInterface
  */
-interface Identifiable
+interface DefinitionInterface
 {
     /**
-     * @return string|int
+     * @return int
      */
-    public function getId();
+    public function getId(): int;
 }

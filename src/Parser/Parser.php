@@ -343,7 +343,7 @@ class Parser implements ParserInterface
             return false;
         }
 
-        $this->todo = $last->getJumps();
+        $this->todo = $last->goto();
         $this->todo[] = new Entry($last->getName(), $last->getState() + 1);
 
         return true;
