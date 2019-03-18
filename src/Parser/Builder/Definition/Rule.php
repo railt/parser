@@ -37,14 +37,6 @@ abstract class Rule
     protected $nodeId;
 
     /**
-     * Whether the rule is transitional or not (i.e. not declared in the grammar
-     * but created by the analyzer).
-     *
-     * @var bool
-     */
-    protected $transitional = true;
-
-    /**
      * Rule constructor.
      *
      * @param string|int $name Rule name.
