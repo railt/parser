@@ -11,7 +11,8 @@ namespace Railt\Tests\Parser\Impl;
 
 use Railt\Lexer\Driver\NativeRegex;
 use Railt\Lexer\LexerInterface;
-use Railt\Parser\Grammar;
+use Railt\Parser\Builder;
+use Railt\Parser\Runtime\Grammar;
 use Railt\Parser\Parser;
 use Railt\Parser\Builder\Definition\Alternation;
 use Railt\Parser\Builder\Definition\Concatenation;
@@ -162,18 +163,15 @@ class GraphQLParser extends Parser
     ];
 
     /**
-     * Parser root rule name.
-     *
-     * @var string
-     */
-    protected const PARSER_ROOT_RULE = 'Document';
-
-    /**
      * BaseParser constructor.
      */
     public function __construct()
     {
-        parent::__construct($this->createLexer(), new Grammar($this->createGrammarRules(), static::PARSER_ROOT_RULE));
+        $builder = new Builder();
+        $builder->startsAt('Document');
+        $builder->create($this->rules());
+
+        parent::__construct($this->createLexer(), $builder->getGrammar());
     }
 
     /**
@@ -187,7 +185,7 @@ class GraphQLParser extends Parser
     /**
      * @return array|\Railt\Parser\Builder\Definition\Rule[]
      */
-    protected function createGrammarRules(): array
+    protected function rules(): array
     {
         return [
             0                                      => new Concatenation(0, ['TypeSystemLanguage'], 'Document'),

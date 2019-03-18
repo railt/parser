@@ -7,18 +7,12 @@
  */
 declare(strict_types=1);
 
-namespace Railt\Parser;
-
-use Railt\Parser\Builder\Definition\Alternation;
-use Railt\Parser\Builder\Definition\Concatenation;
-use Railt\Parser\Builder\Definition\Repetition;
-use Railt\Parser\Builder\Definition\Rule;
-use Railt\Parser\Builder\Definition\Terminal;
+namespace Railt\Parser\Runtime;
 
 /**
  * Class Grammar
  */
-class Grammar
+class Grammar implements GrammarInterface
 {
     /**
      * @var int
@@ -41,37 +35,62 @@ class Grammar
     public const TYPE_TERMINAL = 0x03;
 
     /**
-     * @var array|Rule[]|Terminal[]|Repetition[]
+     * @var array|int[]|null
      */
-    private $definitions;
+    public $types;
 
     /**
-     * @var string
+     * @var array|int[]|null
      */
-    protected $root;
+    public $children;
 
     /**
-     * Grammar constructor.
-     *
-     * @param array $rules
-     * @param string $root
+     * @var array|null
      */
-    public function __construct(array $rules, string $root)
-    {
-        $this->definitions = $rules;
-        $this->root = $root;
-    }
+    public $nodes;
 
-    private function build(array $definitions)
-    {
+    /**
+     * @var array|null
+     */
+    public $defaults;
 
-    }
+    /**
+     * @var array|null
+     */
+    public $transitional;
+
+    /**
+     * @var array|null
+     */
+    public $keep;
+
+    /**
+     * @var array|null
+     */
+    public $min;
+
+    /**
+     * @var array|null
+     */
+    public $max;
+
+    /**
+     * @var array|null
+     */
+    public $tokens;
+
+    /**
+     * @var string|null
+     */
+    public $root;
 
     /**
      * @return string
      */
     public function rootId(): string
     {
+        \assert($this->root !== null, 'Root id should be initialized');
+
         return $this->root;
     }
 
@@ -81,7 +100,9 @@ class Grammar
      */
     public function isTerminal($id): bool
     {
-        return $this->definitions[$id] instanceof Terminal;
+        \assert($this->types !== null, 'Types list should be initialized');
+
+        return $this->types[$id] === self::TYPE_TERMINAL;
     }
 
     /**
@@ -90,7 +111,9 @@ class Grammar
      */
     public function isConcatenation($id): bool
     {
-        return $this->definitions[$id] instanceof Concatenation;
+        \assert($this->types !== null, 'Types list should be initialized');
+
+        return $this->types[$id] === self::TYPE_CONCATENATION;
     }
 
     /**
@@ -99,7 +122,9 @@ class Grammar
      */
     public function isAlternation($id): bool
     {
-        return $this->definitions[$id] instanceof Alternation;
+        \assert($this->types !== null, 'Types list should be initialized');
+
+        return $this->types[$id] === self::TYPE_ALTERNATION;
     }
 
     /**
@@ -108,7 +133,9 @@ class Grammar
      */
     public function isRepetition($id): bool
     {
-        return $this->definitions[$id] instanceof Repetition;
+        \assert($this->types !== null, 'Types list should be initialized');
+
+        return $this->types[$id] === self::TYPE_REPETITION;
     }
 
     /**
@@ -117,7 +144,9 @@ class Grammar
      */
     public function getNodeId($id): ?string
     {
-        return $this->definitions[$id]->getNodeId();
+        \assert($this->nodes !== null, 'Nodes list should be initialized');
+
+        return $this->nodes[$id];
     }
 
     /**
@@ -126,7 +155,9 @@ class Grammar
      */
     public function getDefaultId($id): ?string
     {
-        return $this->definitions[$id]->getDefaultId();
+        \assert($this->types !== null, 'Defaults list should be initialized');
+
+        return $this->defaults[$id];
     }
 
     /**
@@ -135,7 +166,9 @@ class Grammar
      */
     public function isTransitional($id): bool
     {
-        return \is_int($id);
+        \assert($this->types !== null, 'Transitional list should be initialized');
+
+        return $this->transitional[$id];
     }
 
     /**
@@ -144,7 +177,9 @@ class Grammar
      */
     public function isKept($id): bool
     {
-        return $this->definitions[$id]->isKept();
+        \assert($this->types !== null, 'Kept list should be initialized');
+
+        return $this->keep[$id];
     }
 
     /**
@@ -153,7 +188,9 @@ class Grammar
      */
     public function getTokenName($id): string
     {
-        return $this->definitions[$id]->getTokenName();
+        \assert($this->types !== null, 'Token names list should be initialized');
+
+        return $this->tokens[$id];
     }
 
     /**
@@ -162,7 +199,9 @@ class Grammar
      */
     public function getChildren($id)
     {
-        return $this->definitions[$id]->getChildren();
+        \assert($this->types !== null, 'Children list should be initialized');
+
+        return $this->children[$id];
     }
 
     /**
@@ -171,7 +210,9 @@ class Grammar
      */
     public function getMin($id): int
     {
-        return $this->definitions[$id]->getMin();
+        \assert($this->types !== null, 'Min ids list should be initialized');
+
+        return $this->min[$id];
     }
 
     /**
@@ -180,6 +221,8 @@ class Grammar
      */
     public function getMax($id): int
     {
-        return $this->definitions[$id]->getMax();
+        \assert($this->types !== null, 'Max ids list should be initialized');
+
+        return $this->max[$id];
     }
 }

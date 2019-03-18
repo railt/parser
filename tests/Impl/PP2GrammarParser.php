@@ -11,12 +11,12 @@ namespace Railt\Tests\Parser\Impl;
 
 use Railt\Lexer\Driver\NativeRegex;
 use Railt\Lexer\LexerInterface;
-use Railt\Parser\Grammar;
-use Railt\Parser\Parser;
+use Railt\Parser\Builder;
 use Railt\Parser\Builder\Definition\Alternation;
 use Railt\Parser\Builder\Definition\Concatenation;
 use Railt\Parser\Builder\Definition\Repetition;
 use Railt\Parser\Builder\Definition\Terminal;
+use Railt\Parser\Parser;
 
 /**
  * Class PP2GrammarParser
@@ -28,7 +28,19 @@ class PP2GrammarParser extends Parser
      */
     public function __construct()
     {
-        parent::__construct($this->getLexer(), new Grammar([
+        $builder = new Builder();
+        $builder->startsAt('Grammar');
+        $builder->create($this->rules());
+
+        parent::__construct($this->getLexer(), $builder->getGrammar());
+    }
+
+    /**
+     * @return array
+     */
+    private function rules(): array
+    {
+        return [
             0                           => new Repetition(0, 0, -1, '__definition', null),
             'Grammar'                   => new Concatenation('Grammar', [0], 'Grammar'),
             '__definition'              => new Alternation('__definition', ['TokenDefinition', 'PragmaDefinition', 'IncludeDefinition', 'RuleDefinition'], null),
@@ -93,7 +105,7 @@ class PP2GrammarParser extends Parser
             61                          => new Terminal(61, 'T_REPEAT_EXACTLY_N', true),
             62                          => new Concatenation(62, [61], 'Quantifier'),
             'Quantifier'                => new Alternation('Quantifier', [48, 50, 52, 54, 56, 58, 60, 62], null),
-        ], 'Grammar'));
+        ];
     }
 
     /**

@@ -7,15 +7,18 @@
  */
 declare(strict_types=1);
 
-namespace Railt\Parser\Runtime;
+namespace Railt\Parser;
+
+use Railt\Parser\Builder\ProvidesGrammar;
 
 /**
  * Interface BuilderInterface
  */
-interface BuilderInterface
+interface BuilderInterface extends ProvidesGrammar
 {
     /**
-     * @return mixed
+     * @param string|int $id
+     * @return BuilderInterface
      */
-    public function build();
+    public function startsAt($id): self;
 }

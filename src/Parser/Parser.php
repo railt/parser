@@ -13,20 +13,17 @@ use Railt\Io\Readable;
 use Railt\Lexer\LexerInterface;
 use Railt\Lexer\Token\Unknown;
 use Railt\Lexer\TokenInterface;
+use Railt\Parser\Ast\Leaf;
+use Railt\Parser\Ast\Node;
 use Railt\Parser\Ast\Rule as AstRule;
 use Railt\Parser\Ast\RuleInterface;
 use Railt\Parser\Exception\UnexpectedTokenException;
-use Railt\Parser\Builder\Definition\Alternation;
-use Railt\Parser\Builder\Definition\Concatenation;
-use Railt\Parser\Builder\Definition\Repetition;
-use Railt\Parser\Builder\Definition\Rule;
-use Railt\Parser\Builder\Definition\Terminal;
-use Railt\Parser\Runtime\Builder;
+use Railt\Parser\Runtime\GrammarInterface;
 use Railt\Parser\Runtime\TokenStream;
 use Railt\Parser\Runtime\Trace\Entry;
 use Railt\Parser\Runtime\Trace\Escape;
-use Railt\Parser\Runtime\Trace\Statement;
 use Railt\Parser\Runtime\Trace\Lexeme;
+use Railt\Parser\Runtime\Trace\Statement;
 use Railt\Parser\Runtime\Trace\TraceItem;
 
 /**
@@ -47,18 +44,18 @@ class Parser implements ParserInterface
     protected $stream;
 
     /**
-     * Possible token causing an error
-     *
-     * @var TokenInterface|null
-     */
-    private $errorToken;
-
-    /**
      * Trace of parsed rules
      *
      * @var array|Statement[]|Lexeme[]
      */
     protected $trace = [];
+
+    /**
+     * Possible token causing an error
+     *
+     * @var TokenInterface|null
+     */
+    private $errorToken;
 
     /**
      * Stack of items which need to be processed
@@ -68,7 +65,7 @@ class Parser implements ParserInterface
     private $todo;
 
     /**
-     * @var Grammar
+     * @var GrammarInterface
      */
     private $grammar;
 
@@ -76,20 +73,12 @@ class Parser implements ParserInterface
      * AbstractParser constructor.
      *
      * @param LexerInterface $lexer
-     * @param Grammar $grammar
+     * @param GrammarInterface $grammar
      */
-    public function __construct(LexerInterface $lexer, Grammar $grammar)
+    public function __construct(LexerInterface $lexer, GrammarInterface $grammar)
     {
         $this->lexer = $lexer;
         $this->grammar = $grammar;
-    }
-
-    /**
-     * @return LexerInterface
-     */
-    public function getLexer(): LexerInterface
-    {
-        return $this->lexer;
     }
 
     /**
@@ -100,22 +89,9 @@ class Parser implements ParserInterface
      */
     public function parse(Readable $input)
     {
-        $trace = $this->trace($input);
+        $this->trace($input);
 
-        $builder = new Builder($trace, $this->grammar, \Closure::fromCallable([$this, 'create']));
-
-        return $builder->build();
-    }
-
-    /**
-     * @param string $rule
-     * @param array $children
-     * @param int $offset
-     * @return RuleInterface|mixed
-     */
-    protected function create(string $rule, array $children, int $offset)
-    {
-        return new AstRule($rule, $children, $offset);
+        return $this->build();
     }
 
     /**
@@ -123,7 +99,7 @@ class Parser implements ParserInterface
      * @return array
      * @throws \Railt\Io\Exception\ExternalFileException
      */
-    protected function trace(Readable $input): array
+    private function trace(Readable $input): array
     {
         $this->reset($input);
 
@@ -144,7 +120,7 @@ class Parser implements ParserInterface
      */
     private function reset(Readable $input): void
     {
-        $this->stream = $this->getStream($input);
+        $this->stream = new TokenStream($this->lex($input), \PHP_INT_MAX);
 
         $this->errorToken = null;
 
@@ -159,20 +135,10 @@ class Parser implements ParserInterface
 
     /**
      * @param Readable $input
-     * @return TokenStream
-     * @throws \Railt\Io\Exception\ExternalFileException
-     */
-    protected function getStream(Readable $input): TokenStream
-    {
-        return new TokenStream($this->lex($input), \PHP_INT_MAX);
-    }
-
-    /**
-     * @param Readable $input
      * @return iterable|TokenInterface[]
      * @throws UnexpectedTokenException
      */
-    protected function lex(Readable $input): iterable
+    private function lex(Readable $input): iterable
     {
         foreach ($this->lexer->lex($input) as $token) {
             if ($token->getName() === Unknown::T_NAME) {
@@ -299,8 +265,6 @@ class Parser implements ParserInterface
     {
         $children = $this->grammar->getChildren($id);
 
-        echo $next;
-
         if ($next >= \count($children)) {
             return false;
         }
@@ -400,5 +364,101 @@ class Parser implements ParserInterface
 
             throw $exception;
         }
+    }
+
+    /**
+     * Build AST from trace.
+     * Walk through the trace iteratively and recursively.
+     *
+     * @param int $i Current trace index.
+     * @param array &$children Collected children.
+     * @return Node|int|mixed
+     */
+    protected function build(int $i = 0, array &$children = [])
+    {
+        $max = \count($this->trace);
+
+        while ($i < $max) {
+            $trace = $this->trace[$i];
+            $name = $trace->getName();
+
+            if ($trace instanceof Entry) {
+                $nextTrace = $this->trace[$i + 1];
+                $id = $this->grammar->getNodeId($name);
+
+                // Optimization: Skip empty trace sequence.
+                if ($nextTrace instanceof Escape && $name === $nextTrace->getName()) {
+                    $i += 2;
+
+                    continue;
+                }
+
+                if (! $this->grammar->isTransitional($name)) {
+                    $children[] = $name;
+                }
+
+                if ($id !== null) {
+                    $children[] = [$id];
+                }
+
+                $i = $this->build($i + 1, $children);
+
+                if ($this->grammar->isTransitional($name)) {
+                    continue;
+                }
+
+                $handle = [];
+                $childId = null;
+
+                do {
+                    $pop = \array_pop($children);
+
+                    if (\is_object($pop) === true) {
+                        $handle[] = $pop;
+                    } elseif (\is_array($pop) && $childId === null) {
+                        $childId = \reset($pop);
+                    } elseif ($name === $pop) {
+                        break;
+                    }
+                } while ($pop !== null);
+
+                if ($childId === null) {
+                    $childId = $this->grammar->getDefaultId($name);
+                }
+
+                if ($childId === null) {
+                    for ($j = \count($handle) - 1; $j >= 0; --$j) {
+                        $children[] = $handle[$j];
+                    }
+
+                    continue;
+                }
+
+                $children[] = $this->create((string)($id ?: $childId), \array_reverse($handle), $trace->getOffset());
+            } elseif ($trace instanceof Escape) {
+                return $i + 1;
+            } else {
+                if (! $trace->isKept()) {
+                    ++$i;
+                    continue;
+                }
+
+                $children[] = new Leaf($trace->getName(), $trace->getValue(), $trace->getOffset());
+                ++$i;
+            }
+        }
+
+        return $children[0];
+    }
+
+    /**
+     * @param string $rule
+     * @param array $children
+     * @param int $offset
+     * @return RuleInterface|mixed
+     */
+    protected function create(string $rule, array $children, int $offset)
+    {
+        return new AstRule($rule, $children, $offset);
     }
 }

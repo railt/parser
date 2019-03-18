@@ -57,15 +57,6 @@ class Repetition extends Rule
     }
 
     /**
-     * Check whether the maximum repetition is unbounded.
-     * @return bool
-     */
-    public function isInfinite(): bool
-    {
-        return $this->getMax() === -1;
-    }
-
-    /**
      * Get maximum bound.
      * @return int
      */
