@@ -9,8 +9,6 @@ declare(strict_types=1);
 
 namespace Railt\Parser\Runtime\Trace;
 
-use Railt\Lexer\TokenInterface;
-
 /**
  * Class Token
  */
@@ -30,6 +28,7 @@ class Lexeme extends TraceItem implements LexemeInterface
     public function __construct(int $id, string $value)
     {
         parent::__construct($id);
+
         $this->value = $value;
     }
 

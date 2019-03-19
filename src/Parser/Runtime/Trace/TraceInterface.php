@@ -17,6 +17,11 @@ interface TraceInterface
     /**
      * @return int
      */
+    public function getId(): int;
+
+    /**
+     * @return int
+     */
     public function getOffset(): int;
 
     /**
@@ -24,9 +29,4 @@ interface TraceInterface
      * @return TraceInterface
      */
     public function at(int $offset): self;
-
-    /**
-     * @return mixed
-     */
-    public function getName();
 }

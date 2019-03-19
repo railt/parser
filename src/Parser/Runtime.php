@@ -123,7 +123,7 @@ class Runtime implements RuntimeInterface
             if ($trace instanceof Escape) {
                 $this->addTrace($trace);
             } else {
-                $out = $this->reduce($trace->getName(), $trace->getState());
+                $out = $this->reduce($trace->getId(), $trace->getState());
 
                 if ($out === false && $this->backtrack() === false) {
                     return false;
@@ -148,11 +148,11 @@ class Runtime implements RuntimeInterface
     }
 
     /**
-     * @param string|int $current
+     * @param int $current
      * @param int $next
      * @return bool
      */
-    private function reduce($current, int $next): bool
+    private function reduce(int $current, int $next): bool
     {
         if (! $this->stream->current()) {
             return false;
@@ -176,10 +176,10 @@ class Runtime implements RuntimeInterface
     }
 
     /**
-     * @param string|int $id
+     * @param int $id
      * @return bool
      */
-    private function parseTerminal($id): bool
+    private function parseTerminal(int $id): bool
     {
         /** @var TokenInterface $current */
         $current = $this->stream->current();
@@ -197,10 +197,10 @@ class Runtime implements RuntimeInterface
     }
 
     /**
-     * @param string|int $id
+     * @param int $id
      * @return bool
      */
-    private function parseConcatenation($id): bool
+    private function parseConcatenation(int $id): bool
     {
         $this->addTrace(new Entry($id));
 
@@ -213,11 +213,11 @@ class Runtime implements RuntimeInterface
     }
 
     /**
-     * @param string|int $id
+     * @param int $id
      * @param int $next
      * @return bool
      */
-    private function parseAlternation($id, int $next): bool
+    private function parseAlternation(int $id, int $next): bool
     {
         $children = $this->grammar->goto[$id];
 
@@ -236,11 +236,11 @@ class Runtime implements RuntimeInterface
     }
 
     /**
-     * @param string|int $id
+     * @param int $id
      * @param int $next
      * @return bool
      */
-    private function parseRepetition($id, int $next): bool
+    private function parseRepetition(int $id, int $next): bool
     {
         $nextRule = $this->grammar->goto[$id][0];
 
@@ -286,11 +286,11 @@ class Runtime implements RuntimeInterface
         do {
             $last = \array_pop($this->trace);
             if ($last instanceof Entry) {
-                $type = $this->grammar->actions[$last->getName()];
+                $type = $this->grammar->actions[$last->getId()];
                 $found = $type === GrammarInterface::TYPE_ALTERNATION;
 
             } elseif ($last instanceof Escape) {
-                $type = $this->grammar->actions[$last->getName()];
+                $type = $this->grammar->actions[$last->getId()];
                 $found = $type === GrammarInterface::TYPE_REPETITION;
 
             } elseif ($last instanceof Lexeme && ! $this->stream->prev()) {
@@ -303,7 +303,7 @@ class Runtime implements RuntimeInterface
         }
 
         $this->todo = $last->goto();
-        $this->todo[] = new Entry($last->getName(), $last->getState() + 1);
+        $this->todo[] = new Entry($last->getId(), $last->getState() + 1);
 
         return true;
     }
@@ -335,7 +335,7 @@ class Runtime implements RuntimeInterface
 
         while ($i < $max) {
             $trace = $this->trace[$i];
-            $name = $trace->getName();
+            $name = $trace->getId();
 
             if ($trace instanceof Entry) {
                 $nextTrace = $this->trace[$i + 1];
@@ -343,7 +343,7 @@ class Runtime implements RuntimeInterface
                 $transitional = \in_array($name, $this->grammar->transitional, true);
 
                 // Optimization: Skip empty trace sequence.
-                if ($nextTrace instanceof Escape && $name === $nextTrace->getName()) {
+                if ($nextTrace instanceof Escape && $name === $nextTrace->getId()) {
                     $i += 2;
 
                     continue;

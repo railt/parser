@@ -20,9 +20,9 @@ abstract class TraceItem implements TraceInterface
     protected $offset = 0;
 
     /**
-     * @var string|int
+     * @var int
      */
-    protected $name;
+    protected $id;
 
     /**
      * TraceItem constructor.
@@ -31,7 +31,7 @@ abstract class TraceItem implements TraceInterface
      */
     public function __construct(int $id)
     {
-        $this->name = $id;
+        $this->id = $id;
     }
 
     /**
@@ -54,10 +54,10 @@ abstract class TraceItem implements TraceInterface
     }
 
     /**
-     * @return int|string
+     * @return int
      */
-    public function getName()
+    public function getId(): int
     {
-        return $this->name;
+        return $this->id;
     }
 }
