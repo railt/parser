@@ -14,30 +14,5 @@ namespace Railt\Parser\Builder\Definition;
  */
 class Concatenation extends Production
 {
-    /**
-     * @var array
-     */
-    private $goto;
 
-    /**
-     * Alternation constructor.
-     *
-     * @param string|int $name
-     * @param array $goto
-     * @param string|null $alias
-     */
-    public function __construct($name, array $goto, ?string $alias = null)
-    {
-        $this->goto = $goto;
-
-        parent::__construct($name, $alias);
-    }
-
-    /**
-     * @return array
-     */
-    public function getGoto(): array
-    {
-        return $this->goto;
-    }
 }

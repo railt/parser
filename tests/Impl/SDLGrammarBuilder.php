@@ -9,32 +9,32 @@ declare(strict_types=1);
 
 namespace Railt\Tests\Parser\Impl;
 
-use Railt\Lexer\Driver\NativeRegex;
-use Railt\Lexer\LexerInterface;
 use Railt\Parser\Builder;
 use Railt\Parser\Builder\Definition\Alternation;
 use Railt\Parser\Builder\Definition\Concatenation;
-use Railt\Parser\Builder\Definition\Repetition;
 use Railt\Parser\Builder\Definition\Lexeme;
-use Railt\Parser\Parser;
+use Railt\Parser\Builder\Definition\Repetition;
+use Railt\Parser\Builder\DefinitionInterface;
+use Railt\Parser\Builder\ProvidesGrammar;
+use Railt\Parser\Runtime\GrammarInterface;
 
 /**
- * Class SDLParser
+ * Class SDLGrammar
  */
-class SDLParser extends Parser
+class SDLGrammarBuilder implements ProvidesGrammar
 {
     /**
-     * JsonParser constructor.
+     * @return GrammarInterface
      */
-    public function __construct()
+    public function getGrammar(): GrammarInterface
     {
         $builder = new Builder($this->rules(), 'Document');
 
-        parent::__construct($this->getLexer(), $builder->getGrammar());
+        return $builder->getGrammar();
     }
 
     /**
-     * @return array
+     * @return array|DefinitionInterface[]
      */
     private function rules(): array
     {
@@ -271,52 +271,5 @@ class SDLParser extends Parser
             new Lexeme(229, 'T_COLON', false),
             new Concatenation('DirectiveArgumentPair', ['Key', 229, 'Value'], 'Argument'),
         ];
-    }
-
-    /**
-     * @return LexerInterface
-     */
-    public function getLexer(): LexerInterface
-    {
-        return new NativeRegex([
-            'T_NON_NULL'            => '!',
-            'T_VAR'                 => '\$',
-            'T_PARENTHESIS_OPEN'    => '\(',
-            'T_PARENTHESIS_CLOSE'   => '\)',
-            'T_THREE_DOTS'          => '\.\.\.',
-            'T_COLON'               => ':',
-            'T_EQUAL'               => '=',
-            'T_DIRECTIVE_AT'        => '@',
-            'T_BRACKET_OPEN'        => '\[',
-            'T_BRACKET_CLOSE'       => '\]',
-            'T_BRACE_OPEN'          => '{',
-            'T_BRACE_CLOSE'         => '}',
-            'T_OR'                  => '\|',
-            'T_AND'                 => '\&',
-            'T_NUMBER_VALUE'        => '\-?(0|[1-9][0-9]*)(\.[0-9]+)?([eE][\+\-]?[0-9]+)?\b',
-            'T_BOOL_TRUE'           => 'true\b',
-            'T_BOOL_FALSE'          => 'false\b',
-            'T_NULL'                => 'null\b',
-            'T_MULTILINE_STRING'    => '"""(?:\\\"""|(?!""").|\s)*"""',
-            'T_STRING'              => '"[^"\\\]*(\\\.[^"\\\]*)*"',
-            'T_EXTENDS'             => 'extends\b',
-            'T_TYPE_IMPLEMENTS'     => 'implements\b',
-            'T_ON'                  => 'on\b',
-            'T_TYPE'                => 'type\b',
-            'T_ENUM'                => 'enum\b',
-            'T_UNION'               => 'union\b',
-            'T_INTERFACE'           => 'interface\b',
-            'T_SCHEMA'              => 'schema\b',
-            'T_SCHEMA_QUERY'        => 'query\b',
-            'T_SCHEMA_MUTATION'     => 'mutation\b',
-            'T_SCHEMA_SUBSCRIPTION' => 'subscription\b',
-            'T_SCALAR'              => 'scalar\b',
-            'T_DIRECTIVE'           => 'directive\b',
-            'T_INPUT'               => 'input\b',
-            'T_EXTEND'              => 'extend\b',
-            'T_NAME'                => '([_A-Za-z][_0-9A-Za-z]*)',
-            'T_VARIABLE'            => '(\$[_A-Za-z][_0-9A-Za-z]*)',
-            'skip'                  => '(?:(?:[\xfe\xff|\x20|\x09|\x0a|\x0d]+|#[^\n]*)|,)',
-        ], ['skip']);
     }
 }

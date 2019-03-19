@@ -12,7 +12,7 @@ namespace Railt\Parser\Builder;
 /**
  * Interface ProductionDefinitionInterface
  */
-interface ProductionDefinitionInterface
+interface ProductionDefinitionInterface extends DefinitionInterface
 {
     /**
      * @return string|null
@@ -24,4 +24,9 @@ interface ProductionDefinitionInterface
      * @return ProductionDefinitionInterface
      */
     public function as(string $alias): ProductionDefinitionInterface;
+
+    /**
+     * @return array|string[]|int[]
+     */
+    public function getGoto(): array;
 }

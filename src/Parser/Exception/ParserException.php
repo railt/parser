@@ -14,6 +14,6 @@ use Railt\Io\Exception\ExternalFileException;
 /**
  * Class ParserException
  */
-abstract class ParserException extends ExternalFileException
+class ParserException extends ExternalFileException
 {
 }

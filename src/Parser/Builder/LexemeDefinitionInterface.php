@@ -23,4 +23,10 @@ interface LexemeDefinitionInterface
      * @return bool
      */
     public function isKept(): bool;
+
+    /**
+     * @param bool $keep
+     * @return LexemeDefinitionInterface|$this
+     */
+    public function keep(bool $keep = true): LexemeDefinitionInterface;
 }

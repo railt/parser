@@ -46,6 +46,17 @@ class Lexeme extends Definition implements LexemeDefinitionInterface
     }
 
     /**
+     * @param bool $keep
+     * @return LexemeDefinitionInterface|$this
+     */
+    public function keep(bool $keep = true): LexemeDefinitionInterface
+    {
+        $this->kept = $keep;
+
+        return $this;
+    }
+
+    /**
      * Get token name.
      *
      * @return string

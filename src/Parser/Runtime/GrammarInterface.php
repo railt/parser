@@ -11,79 +11,44 @@ namespace Railt\Parser\Runtime;
 
 /**
  * Interface ProvidesGrammarInterface
+ *
+ * @property int $root
+ * @property array|int[] $transitional
+ * @property array $actions
+ * @property array $names
+ * @property array $goto
  */
 interface GrammarInterface
 {
     /**
-     * @return string|int
+     * @var int
      */
-    public function rootId();
+    public const TYPE_ALTERNATION = 0x00;
 
     /**
-     * @param string|int $id
-     * @return bool
+     * @var int
      */
-    public function isTerminal($id): bool;
+    public const TYPE_CONCATENATION = 0x01;
 
     /**
-     * @param string|int $id
-     * @return bool
+     * @var int
      */
-    public function isConcatenation($id): bool;
+    public const TYPE_REPETITION = 0x02;
 
     /**
-     * @param string|int $id
-     * @return bool
+     * @var int
      */
-    public function isAlternation($id): bool;
+    public const TYPE_TERMINAL = 0x03;
 
     /**
-     * @param string|int $id
-     * @return bool
+     * @var int
      */
-    public function isRepetition($id): bool;
+    public const REPEAT_MIN = 0x01;
 
     /**
-     * @param string|int $id
-     * @return string|null
+     * @var int
      */
-    public function getNodeId($id): ?string;
-
-    /**
-     * @param string|int $id
-     * @return bool
-     */
-    public function isTransitional($id): bool;
-
-    /**
-     * @param string|int $id
-     * @return bool
-     */
-    public function isKept($id): bool;
-
-    /**
-     * @param string|int $id
-     * @return string
-     */
-    public function getTokenName($id): string;
-
-    /**
-     * @param string|int $id
-     * @return int|int[]|string|string[]
-     */
-    public function getChildren($id);
-
-    /**
-     * @param string|int $id
-     * @return int
-     */
-    public function getMin($id): int;
-
-    /**
-     * @param string|int $id
-     * @return int
-     */
-    public function getMax($id): int;
+    public const REPEAT_MAX = 0x02;
 }
 
 

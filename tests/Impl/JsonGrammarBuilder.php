@@ -9,32 +9,32 @@ declare(strict_types=1);
 
 namespace Railt\Tests\Parser\Impl;
 
-use Railt\Lexer\Driver\NativeRegex;
-use Railt\Lexer\LexerInterface;
 use Railt\Parser\Builder;
-use Railt\Parser\Parser;
 use Railt\Parser\Builder\Definition\Alternation;
 use Railt\Parser\Builder\Definition\Concatenation;
-use Railt\Parser\Builder\Definition\Repetition;
 use Railt\Parser\Builder\Definition\Lexeme;
+use Railt\Parser\Builder\Definition\Repetition;
+use Railt\Parser\Builder\DefinitionInterface;
+use Railt\Parser\Builder\ProvidesGrammar;
+use Railt\Parser\Runtime\GrammarInterface;
 
 /**
- * Class JsonParser
+ * Class JsonGrammar
  */
-class JsonParser extends Parser
+class JsonGrammarBuilder implements ProvidesGrammar
 {
     /**
-     * JsonParser constructor.
+     * @return GrammarInterface
      */
-    public function __construct()
+    public function getGrammar(): GrammarInterface
     {
         $builder = new Builder($this->rules(), 'value');
 
-        parent::__construct($this->getLexer(), $builder->getGrammar());
+        return $builder->getGrammar();
     }
 
     /**
-     * @return array
+     * @return array|DefinitionInterface[]
      */
     private function rules(): array
     {
@@ -62,26 +62,5 @@ class JsonParser extends Parser
             new Lexeme(20, '_bracket', false),
             new Concatenation('array', [15, 16, 19, 20], 'array'),
         ];
-    }
-
-    /**
-     * @return LexerInterface
-     */
-    public function getLexer(): LexerInterface
-    {
-        return new NativeRegex([
-            'skip'     => '\s',
-            'true'     => 'true',
-            'false'    => 'false',
-            'null'     => 'null',
-            'string'   => '"[^"\\\]*(\\\.[^"\\\]*)*"',
-            'brace_'   => '{',
-            '_brace'   => '}',
-            'bracket_' => '\[',
-            '_bracket' => '\]',
-            'colon'    => ':',
-            'comma'    => ',',
-            'number'   => '\d+',
-        ], ['skip']);
     }
 }

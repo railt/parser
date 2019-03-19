@@ -22,16 +22,31 @@ abstract class Production extends Definition implements ProductionDefinitionInte
     protected $alias;
 
     /**
+     * @var array|int[]|string[]
+     */
+    protected $goto;
+
+    /**
      * Production constructor.
      *
      * @param string|int $name
+     * @param array|string[]|int[] $goto
      * @param string|null $alias
      */
-    public function __construct($name, string $alias = null)
+    public function __construct($name, array $goto, string $alias = null)
     {
-        parent::__construct($name);
-
         $this->alias = $alias;
+        $this->goto = $goto;
+
+        parent::__construct($name);
+    }
+
+    /**
+     * @return array|string[]|int[]
+     */
+    public function getGoto(): array
+    {
+        return $this->goto;
     }
 
     /**

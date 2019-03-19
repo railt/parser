@@ -32,7 +32,7 @@ class Lexeme extends TraceItem implements LexemeInterface
      * @param TokenInterface $token
      * @param bool $kept
      */
-    public function __construct(TokenInterface $token, bool $kept)
+    public function __construct(TokenInterface $token, bool $kept = false)
     {
         parent::__construct($token->getName());
         $this->at($token->getOffset());

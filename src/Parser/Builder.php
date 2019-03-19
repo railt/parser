@@ -12,10 +12,10 @@ namespace Railt\Parser;
 use Railt\Parser\Builder\Definition\Alternation;
 use Railt\Parser\Builder\Definition\Concatenation;
 use Railt\Parser\Builder\Definition\Lexeme;
-use Railt\Parser\Builder\DefinitionInterface;
 use Railt\Parser\Builder\Definition\Repetition;
-use Railt\Parser\Builder\Grammar;
+use Railt\Parser\Builder\DefinitionInterface;
 use Railt\Parser\Builder\ProductionDefinitionInterface;
+use Railt\Parser\Runtime\Grammar;
 use Railt\Parser\Runtime\GrammarInterface;
 
 /**
@@ -39,10 +39,10 @@ class Builder implements BuilderInterface
      * @param array|DefinitionInterface[] $definitions
      * @param string|int $root
      */
-    public function __construct(array $definitions, $root)
+    public function __construct(array $definitions = [], $root = null)
     {
-        $this->root = $root;
         $this->addMany($definitions);
+        $this->startsAt($root);
     }
 
     /**
@@ -70,6 +70,50 @@ class Builder implements BuilderInterface
     }
 
     /**
+     * @param int|string $name
+     * @return BuilderInterface|$this
+     */
+    public function startsAt($name): BuilderInterface
+    {
+        $this->root = $name;
+
+        return $this;
+    }
+
+    /**
+     * @return GrammarInterface
+     */
+    public function getGrammar(): GrammarInterface
+    {
+        $mappings = $this->getMappings();
+
+        $grammar = new Grammar();
+        $grammar->root = $mappings[$this->root];
+
+        foreach ($this->definitions as $rule) {
+            switch (true) {
+                case $rule instanceof Lexeme:
+                    $this->defineLexeme($grammar, $mappings, $rule);
+                    break;
+
+                case $rule instanceof Repetition:
+                    $this->defineRepetition($grammar, $mappings, $rule);
+                    break;
+
+                case $rule instanceof Alternation:
+                    $this->defineAlternation($grammar, $mappings, $rule);
+                    break;
+
+                case $rule instanceof Concatenation:
+                    $this->defineConcatenation($grammar, $mappings, $rule);
+                    break;
+            }
+        }
+
+        return $grammar;
+    }
+
+    /**
      * @return array
      */
     private function getMappings(): array
@@ -84,101 +128,106 @@ class Builder implements BuilderInterface
     }
 
     /**
-     * @param DefinitionInterface $definition
+     * @param Grammar $grammar
+     * @param array $mappings
+     * @param Lexeme $lexeme
+     */
+    private function defineLexeme(Grammar $grammar, array $mappings, Lexeme $lexeme): void
+    {
+        $index = $this->map($lexeme->getId(), $mappings);
+
+        $grammar->actions[$index] = Grammar::TYPE_TERMINAL;
+        $grammar->names[$index] = $lexeme->getName();
+        $grammar->goto[$index] = $lexeme->isKept();
+    }
+
+    /**
+     * @param string|int $goto
+     * @param array $mappings
      * @return int
      */
-    private function getType(DefinitionInterface $definition): int
+    private function map($goto, array $mappings): int
     {
-        switch (true) {
-            case $definition instanceof Alternation:
-                return Grammar::TYPE_ALTERNATION;
-                break;
-
-            case $definition instanceof Concatenation:
-                return Grammar::TYPE_CONCATENATION;
-                break;
-
-            case $definition instanceof Repetition:
-                return Grammar::TYPE_REPETITION;
-                break;
-
-            case $definition instanceof Lexeme:
-                return Grammar::TYPE_TERMINAL;
-                break;
-            default:
-                return 0;
-        }
+        return $mappings[$goto];
     }
 
     /**
-     * @param array|int|string $children
+     * @param Grammar $grammar
      * @param array $mappings
-     * @return int|int[]
+     * @param Repetition $repetition
      */
-    private function map($children, array $mappings)
+    private function defineRepetition(Grammar $grammar, array $mappings, Repetition $repetition): void
     {
-        if (\is_array($children)) {
-            $result = [];
+        $index = $this->map($repetition->getId(), $mappings);
 
-            foreach ($children as $child) {
-                $result[] = $mappings[$child];
-            }
+        $grammar->actions[$index] = Grammar::TYPE_REPETITION;
 
-            return $result;
-        }
+        $grammar->goto[$index] = [
+            $this->mapMany($repetition->getGoto(), $mappings)[0],
+            Grammar::REPEAT_MIN => $repetition->getMin(),
+            Grammar::REPEAT_MAX => $repetition->getMax(),
+        ];
 
-        return $mappings[$children];
+        $this->defineProduction($grammar, $mappings, $repetition);
     }
 
     /**
-     * @return GrammarInterface
+     * @param array|int[]|string[] $goto
+     * @param array $mappings
+     * @return array|int[]
      */
-    public function getGrammar(): GrammarInterface
+    private function mapMany(array $goto, array $mappings): array
     {
-        $mappings = $this->getMappings();
+        return \array_map(function ($rule) use ($mappings) {
+            return $mappings[$rule];
+        }, $goto);
+    }
 
-        $grammar = new Grammar();
-        $grammar->root = $mappings[$this->root];
+    /**
+     * @param Grammar $grammar
+     * @param array $mappings
+     * @param ProductionDefinitionInterface $rule
+     */
+    private function defineProduction(Grammar $grammar, array $mappings, ProductionDefinitionInterface $rule): void
+    {
+        $index = $this->map($rule->getId(), $mappings);
 
-        foreach ($this->definitions as $rule) {
-            $index = $this->map($rule->getId(), $mappings);
-
-            if ($rule instanceof Lexeme) {
-                $grammar->actions[$index] = [
-                    Grammar::ACTION_TYPE => $this->getType($rule),
-                    Grammar::ACTION_NAME => $rule->getName()
-                ];
-
-                if ($rule->isKept()) {
-                    $grammar->keep[] = $index;
-                }
-
-                $grammar->goto[$index] = null;
-
-                continue;
-            }
-
-            if ($rule instanceof Repetition) {
-                $grammar->repeat[$index] = [
-                    Grammar::REPEAT_MIN => $rule->getMin(),
-                    Grammar::REPEAT_MAX => $rule->getMax(),
-                ];
-            }
-
-            if ($rule instanceof ProductionDefinitionInterface) {
-                $grammar->actions[$index] = [
-                    Grammar::ACTION_TYPE => $this->getType($rule),
-                    Grammar::ACTION_NAME => $rule->getAlias()
-                ];
-
-                $grammar->goto[$index] = $this->map($rule->getGoto(), $mappings);
-
-                if (\is_int($rule->getId())) {
-                    $grammar->transitional[] = $index;
-                }
-            }
+        if ($rule->getAlias() !== null) {
+            $grammar->names[$index] = $rule->getAlias();
         }
 
-        return $grammar;
+        if (\is_int($rule->getId())) {
+            $grammar->transitional[] = $this->map($rule->getId(), $mappings);
+        }
+    }
+
+    /**
+     * @param Grammar $grammar
+     * @param array $mappings
+     * @param Alternation $choice
+     */
+    private function defineAlternation(Grammar $grammar, array $mappings, Alternation $choice): void
+    {
+        $index = $this->map($choice->getId(), $mappings);
+
+        $grammar->actions[$index] = Grammar::TYPE_ALTERNATION;
+        $grammar->goto[$index] = $this->mapMany($choice->getGoto(), $mappings);
+
+        $this->defineProduction($grammar, $mappings, $choice);
+    }
+
+    /**
+     * @param Grammar $grammar
+     * @param array $mappings
+     * @param Concatenation $sequence
+     */
+    private function defineConcatenation(Grammar $grammar, array $mappings, Concatenation $sequence): void
+    {
+        $index = $this->map($sequence->getId(), $mappings);
+
+        $grammar->actions[$index] = Grammar::TYPE_CONCATENATION;
+        $grammar->goto[$index] = $this->mapMany($sequence->getGoto(), $mappings);
+
+        $this->defineProduction($grammar, $mappings, $sequence);
     }
 }

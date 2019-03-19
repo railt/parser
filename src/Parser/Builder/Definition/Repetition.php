@@ -29,37 +29,24 @@ class Repetition extends Production
     protected $max = 0;
 
     /**
-     * @var string|int
-     */
-    protected $goto;
-
-    /**
      * Repetition constructor.
      *
      * @param string|int $name Rule name.
      * @param int $min Minimum bound.
      * @param int $max Maximum bound.
      * @param string|int $then Children.
-     * @param string|null $nodeId Node ID.
+     * @param string|null $alias Node ID.
      */
-    public function __construct($name, $min, $max, $then, string $nodeId = null)
+    public function __construct($name, $min, $max, $then, string $alias = null)
     {
         $this->min = \max(0, (int)$min);
         $this->max = \max(-1, (int)$max);
-        $this->goto = $then;
 
-        parent::__construct($name, $nodeId);
+        \assert($this->min <= $this->max || $this->max === -1,
+            \sprintf('Cannot repeat with a min (%d) greater than max (%d).', $this->min, $this->max));
 
-        \assert($min <= $max || $max === -1,
-            \sprintf('Cannot repeat with a min (%d) greater than max (%d).', $min, $max));
-    }
 
-    /**
-     * @return int|string
-     */
-    public function getGoto()
-    {
-        return $this->goto;
+        parent::__construct($name, (array)$then, $alias);
     }
 
     /**

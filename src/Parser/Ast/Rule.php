@@ -101,7 +101,7 @@ class Rule extends Node implements RuleInterface, \ArrayAccess
      */
     public function getChild(int $index)
     {
-        return $this->getChildren()[$index] ?? null;
+        return $this->children[$index] ?? null;
     }
 
     /**

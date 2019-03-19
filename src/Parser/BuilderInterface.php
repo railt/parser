@@ -9,6 +9,10 @@ declare(strict_types=1);
 
 namespace Railt\Parser;
 
+use Railt\Parser\Builder\Definition\Alternation;
+use Railt\Parser\Builder\Definition\Concatenation;
+use Railt\Parser\Builder\Definition\Lexeme;
+use Railt\Parser\Builder\Definition\Repetition;
 use Railt\Parser\Builder\DefinitionInterface;
 use Railt\Parser\Builder\ProvidesGrammar;
 
@@ -17,6 +21,12 @@ use Railt\Parser\Builder\ProvidesGrammar;
  */
 interface BuilderInterface extends ProvidesGrammar
 {
+    /**
+     * @param string|int $name
+     * @return BuilderInterface|$this
+     */
+    public function startsAt($name): BuilderInterface;
+
     /**
      * @param iterable $definitions
      * @return BuilderInterface|$this

@@ -9,32 +9,32 @@ declare(strict_types=1);
 
 namespace Railt\Tests\Parser\Impl;
 
-use Railt\Lexer\Driver\NativeRegex;
-use Railt\Lexer\LexerInterface;
 use Railt\Parser\Builder;
 use Railt\Parser\Builder\Definition\Alternation;
 use Railt\Parser\Builder\Definition\Concatenation;
-use Railt\Parser\Builder\Definition\Repetition;
 use Railt\Parser\Builder\Definition\Lexeme;
-use Railt\Parser\Parser;
+use Railt\Parser\Builder\Definition\Repetition;
+use Railt\Parser\Builder\DefinitionInterface;
+use Railt\Parser\Builder\ProvidesGrammar;
+use Railt\Parser\Runtime\GrammarInterface;
 
 /**
- * Class PP2GrammarParser
+ * Class PP2Grammar
  */
-class PP2GrammarParser extends Parser
+class PP2GrammarBuilder implements ProvidesGrammar
 {
     /**
-     * PP2GrammarParser constructor.
+     * @return GrammarInterface
      */
-    public function __construct()
+    public function getGrammar(): GrammarInterface
     {
         $builder = new Builder($this->rules(), 'Grammar');
 
-        parent::__construct($this->getLexer(), $builder->getGrammar());
+        return $builder->getGrammar();
     }
 
     /**
-     * @return array
+     * @return array|DefinitionInterface[]
      */
     private function rules(): array
     {
@@ -104,41 +104,5 @@ class PP2GrammarParser extends Parser
             new Concatenation(62, [61], 'Quantifier'),
             new Alternation('Quantifier', [48, 50, 52, 54, 56, 58, 60, 62], null),
         ];
-    }
-
-    /**
-     * @return LexerInterface
-     */
-    public function getLexer(): LexerInterface
-    {
-        return new NativeRegex([
-            'T_PRAGMA'              => '%pragma\\h+([\\w\\.]+)\\h+([^\\s]+)',
-            'T_INCLUDE'             => '%include\\h+([^\\s]+)',
-            'T_TOKEN'               => '%token\\h+(\\w+)\\h+([^\\s]+)',
-            'T_SKIP'                => '%skip\\h+(\\w+)\\h+([^\\s]+)',
-            'T_OR'                  => '\\|',
-            'T_TOKEN_SKIPPED'       => '::(\\w+)::',
-            'T_TOKEN_KEPT'          => '<(\\w+)>',
-            'T_TOKEN_STRING'        => '("[^"\\\\]+(\\\\.[^"\\\\]*)*"|\'[^\'\\\\]+(\\\\.[^\'\\\\]*)*\')',
-            'T_INVOKE'              => '(\\w+)\\(\\)',
-            'T_GROUP_OPEN'          => '\\(',
-            'T_GROUP_CLOSE'         => '\\)',
-            'T_REPEAT_ZERO_OR_ONE'  => '\\?',
-            'T_REPEAT_ONE_OR_MORE'  => '\\+',
-            'T_REPEAT_ZERO_OR_MORE' => '\\*',
-            'T_REPEAT_N_TO_M'       => '{\\h*(\\d+)\\h*,\\h*(\\d+)\\h*}',
-            'T_REPEAT_N_OR_MORE'    => '{\\h*(\\d+)\\h*,\\h*}',
-            'T_REPEAT_ZERO_TO_M'    => '{\\h*,\\h*(\\d+)\\h*}',
-            'T_REPEAT_EXACTLY_N'    => '{\\h*(\\d+)\\h*}',
-            'T_KEPT_NAME'           => '#',
-            'T_NAME'                => '[a-zA-Z_\\x7f-\\xff\\\\][a-zA-Z0-9_\\x7f-\\xff\\\\]*',
-            'T_EQ'                  => '::=',
-            'T_ALIAS'               => '\\bas\\b',
-            'T_COLON'               => ':',
-            'T_DELEGATE'            => '\\->',
-            'T_WHITESPACE'          => '(\\xfe\\xff|\\x20|\\x09|\\x0a|\\x0d)+',
-            'T_COMMENT'             => '//[^\\n]*',
-            'T_BLOCK_COMMENT'       => '/\\*.*?\\*/',
-        ], ['T_WHITESPACE', 'T_COMMENT', 'T_BLOCK_COMMENT']);
     }
 }
