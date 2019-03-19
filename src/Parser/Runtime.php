@@ -121,7 +121,7 @@ class Runtime implements RuntimeInterface
             $trace = \array_pop($this->todo);
 
             if ($trace instanceof Escape) {
-                $this->addTrace($trace);
+                $this->trace[] = $trace->at($this->stream->offset());
             } else {
                 $out = $this->reduce($trace->getId(), $trace->getState());
 
@@ -132,19 +132,6 @@ class Runtime implements RuntimeInterface
         }
 
         return true;
-    }
-
-    /**
-     * @param TraceItem $item
-     * @return TraceItem
-     */
-    private function addTrace(TraceItem $item): TraceItem
-    {
-        $this->trace[] = $item;
-
-        $item->at($this->stream->offset());
-
-        return $item;
     }
 
     /**
@@ -190,7 +177,8 @@ class Runtime implements RuntimeInterface
 
         \array_pop($this->todo);
 
-        $this->addTrace(new Lexeme($id, $current->getValue()));
+        $this->trace[] = (new Lexeme($id, $current->getValue()))->at($this->stream->offset());
+
         $this->errorToken = $this->stream->next();
 
         return true;
@@ -202,7 +190,7 @@ class Runtime implements RuntimeInterface
      */
     private function parseConcatenation(int $id): bool
     {
-        $this->addTrace(new Entry($id));
+        $this->trace[] = (new Entry($id))->at($this->stream->offset());
 
         foreach (\array_reverse($this->grammar->goto[$id]) as $child) {
             $this->todo[] = new Escape($child);
@@ -225,7 +213,7 @@ class Runtime implements RuntimeInterface
             return false;
         }
 
-        $this->addTrace(new Entry($id, $next, $this->todo));
+        $this->trace[] = (new Entry($id, $next, $this->todo))->at($this->stream->offset());
 
         $nextRule = $children[$next];
 
@@ -247,7 +235,7 @@ class Runtime implements RuntimeInterface
         if ($next === 0) {
             $min = $this->grammar->goto[$id][GrammarInterface::REPEAT_MIN];
 
-            $this->addTrace(new Entry($id, $min));
+            $this->trace[] = (new Entry($id, $min))->at($this->stream->offset());
 
             \array_pop($this->todo);
 
