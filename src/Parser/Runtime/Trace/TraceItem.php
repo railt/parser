@@ -27,11 +27,11 @@ abstract class TraceItem implements TraceInterface
     /**
      * TraceItem constructor.
      *
-     * @param string|int $name
+     * @param int $id
      */
-    public function __construct($name)
+    public function __construct(int $id)
     {
-        $this->name = $name;
+        $this->name = $id;
     }
 
     /**

@@ -11,6 +11,7 @@ namespace Railt\Parser;
 
 use Railt\Lexer\TokenInterface;
 use Railt\Parser\Ast\Leaf;
+use Railt\Parser\Ast\LeafInterface;
 use Railt\Parser\Ast\Node;
 use Railt\Parser\Ast\Rule as AstRule;
 use Railt\Parser\Ast\RuleInterface;
@@ -189,7 +190,7 @@ class Runtime implements RuntimeInterface
 
         \array_pop($this->todo);
 
-        $this->addTrace(new Lexeme($current, $this->grammar->goto[$id]));
+        $this->addTrace(new Lexeme($id, $current->getValue()));
         $this->errorToken = $this->stream->next();
 
         return true;
@@ -364,25 +365,25 @@ class Runtime implements RuntimeInterface
                 }
 
                 $handle = [];
-                $childId = null;
+                $id = null;
 
                 do {
                     $pop = \array_pop($children);
 
                     if (\is_object($pop) === true) {
                         $handle[] = $pop;
-                    } elseif (\is_array($pop) && $childId === null) {
-                        $childId = \reset($pop);
+                    } elseif (\is_array($pop) && $id === null) {
+                        $id = \reset($pop);
                     } elseif ($name === $pop) {
                         break;
                     }
                 } while ($pop !== null);
 
-                if ($childId === null) {
-                    $childId = $alias;
+                if ($id === null) {
+                    $id = $alias;
                 }
 
-                if ($childId === null) {
+                if ($id === null) {
                     for ($j = \count($handle) - 1; $j >= 0; --$j) {
                         $children[] = $handle[$j];
                     }
@@ -390,12 +391,16 @@ class Runtime implements RuntimeInterface
                     continue;
                 }
 
-                $children[] = $this->create((string)($alias ?: $childId), \array_reverse($handle), $trace->getOffset());
-            } elseif ($trace instanceof Escape) {
+                $children[] = $this->rule((string)($alias ?: $id), \array_reverse($handle), $trace->getOffset());
+            }
+
+            if ($trace instanceof Escape) {
                 return $i + 1;
-            } else {
-                if ($trace->isKept()) {
-                    $children[] = new Leaf($trace->getName(), $trace->getValue(), $trace->getOffset());
+            }
+
+            if ($trace instanceof Lexeme) {
+                if ($this->grammar->goto[$name]) {
+                    $children[] = $this->leaf($this->grammar->names[$name], $trace->getValue(), $trace->getOffset());
                 }
 
                 ++$i;
@@ -406,12 +411,23 @@ class Runtime implements RuntimeInterface
     }
 
     /**
+     * @param string $token
+     * @param string $value
+     * @param int $offset
+     * @return LeafInterface|mixed
+     */
+    protected function leaf(string $token, string $value, int $offset)
+    {
+        return new Leaf($token, $value, $offset);
+    }
+
+    /**
      * @param string $rule
      * @param array $children
      * @param int $offset
      * @return RuleInterface|mixed
      */
-    protected function create(string $rule, array $children, int $offset)
+    protected function rule(string $rule, array $children, int $offset)
     {
         return new AstRule($rule, $children, $offset);
     }

@@ -17,36 +17,20 @@ use Railt\Lexer\TokenInterface;
 class Lexeme extends TraceItem implements LexemeInterface
 {
     /**
-     * @var bool
-     */
-    private $kept;
-
-    /**
      * @var string
      */
     private $value;
 
     /**
-     * Token constructor.
+     * Lexeme constructor.
      *
-     * @param TokenInterface $token
-     * @param bool $kept
+     * @param int $id
+     * @param string $value
      */
-    public function __construct(TokenInterface $token, bool $kept = false)
+    public function __construct(int $id, string $value)
     {
-        parent::__construct($token->getName());
-        $this->at($token->getOffset());
-        $this->value = $token->getValue();
-
-        $this->kept = $kept;
-    }
-
-    /**
-     * @return bool
-     */
-    public function isKept(): bool
-    {
-        return $this->kept;
+        parent::__construct($id);
+        $this->value = $value;
     }
 
     /**
