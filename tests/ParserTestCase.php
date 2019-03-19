@@ -18,6 +18,7 @@ use Railt\Parser\Runtime\GrammarInterface;
 use Railt\Tests\Parser\Impl\GraphQLGrammar;
 use Railt\Tests\Parser\Impl\GraphQLGrammarBuilder;
 use Railt\Tests\Parser\Impl\GraphQLLexerBuilder;
+use Railt\Tests\Parser\Impl\JsonGrammar;
 use Railt\Tests\Parser\Impl\JsonGrammarBuilder;
 use Railt\Tests\Parser\Impl\JsonLexerBuilder;
 use Railt\Tests\Parser\Impl\PP2GrammarBuilder;
@@ -45,6 +46,11 @@ class ParserTestCase extends TestCase
             'JSON (Lexer Builder + Parser Builder)'              => [
                 (new JsonLexerBuilder())->getLexer(),
                 (new JsonGrammarBuilder())->getGrammar(),
+                __DIR__ . '/resources/json/*.json',
+            ],
+            'JSON (Lexer Builder + Compiled Parser)'              => [
+                (new JsonLexerBuilder())->getLexer(),
+                new JsonGrammar(),
                 __DIR__ . '/resources/json/*.json',
             ],
             'SDL (Lexer Builder + Parser Builder)'               => [
