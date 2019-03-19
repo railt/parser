@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "8a49d3553038837f4038a73897bfc0ae",
+    "content-hash": "3357b78b889792b938215b84f37be3e3",
     "packages": [
         {
             "name": "railt/io",
@@ -67,23 +67,23 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/railt/lexer.git",
-                "reference": "430ac601a13346b79519b976077728eb9de86830"
+                "reference": "5b0de24bc3bd70b539305b8f304b538fe92a1e68"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/railt/lexer/zipball/430ac601a13346b79519b976077728eb9de86830",
-                "reference": "430ac601a13346b79519b976077728eb9de86830",
+                "url": "https://api.github.com/repos/railt/lexer/zipball/5b0de24bc3bd70b539305b8f304b538fe92a1e68",
+                "reference": "5b0de24bc3bd70b539305b8f304b538fe92a1e68",
                 "shasum": ""
             },
             "require": {
-                "ext-mbstring": "*",
                 "ext-pcre": "*",
                 "ext-spl": "*",
                 "php": ">=7.1.3",
                 "railt/io": "1.4.*|1.4.x-dev"
             },
             "require-dev": {
-                "phpunit/phpunit": "^7.5"
+                "phpunit/phpunit": "^7.5",
+                "railt/dumper": "1.4.*|1.4.x-dev"
             },
             "type": "library",
             "extra": {
@@ -114,7 +114,7 @@
                 "lexer",
                 "php"
             ],
-            "time": "2019-03-14T23:31:21+00:00"
+            "time": "2019-03-19T09:12:40+00:00"
         }
     ],
     "packages-dev": [
@@ -872,6 +872,61 @@
                 "xunit"
             ],
             "time": "2019-03-16T07:31:17+00:00"
+        },
+        {
+            "name": "railt/dumper",
+            "version": "1.4.x-dev",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/railt/dumper.git",
+                "reference": "b891c89cb2ee38bbe644aadab74fbcb333075525"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/railt/dumper/zipball/b891c89cb2ee38bbe644aadab74fbcb333075525",
+                "reference": "b891c89cb2ee38bbe644aadab74fbcb333075525",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=7.1.3",
+                "symfony/var-dumper": "~3.4|~4.0"
+            },
+            "require-dev": {
+                "phpunit/phpunit": "^7.5"
+            },
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "1.3.x": "1.3.x-dev",
+                    "1.4.x": "1.4.x-dev"
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Railt\\": "src/"
+                },
+                "files": [
+                    "./src/Dumper/helpers.php"
+                ]
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Kirill Nesmeyanov",
+                    "email": "nesk@xakep.ru"
+                }
+            ],
+            "description": "The Railt Framework mechanism for exploring and dumping PHP variable types",
+            "homepage": "http://railt.org",
+            "keywords": [
+                "debug",
+                "dump",
+                "helpers"
+            ],
+            "time": "2019-03-14T23:31:03+00:00"
         },
         {
             "name": "sebastian/code-unit-reverse-lookup",
@@ -1783,7 +1838,8 @@
     "minimum-stability": "dev",
     "stability-flags": {
         "railt/io": 20,
-        "railt/lexer": 20
+        "railt/lexer": 20,
+        "railt/dumper": 20
     },
     "prefer-stable": true,
     "prefer-lowest": false,

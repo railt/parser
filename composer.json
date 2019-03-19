@@ -46,6 +46,7 @@
         }
     },
     "require-dev": {
+        "railt/dumper": "1.4.*|1.4.x-dev",
         "phpunit/phpunit": "^7.5",
         "symfony/var-dumper": "~3.4|~4.0"
     },

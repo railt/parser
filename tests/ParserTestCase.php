@@ -20,6 +20,7 @@ use Railt\Tests\Parser\Impl\GraphQLGrammarBuilder;
 use Railt\Tests\Parser\Impl\GraphQLLexerBuilder;
 use Railt\Tests\Parser\Impl\JsonGrammar;
 use Railt\Tests\Parser\Impl\JsonGrammarBuilder;
+use Railt\Tests\Parser\Impl\JsonLexer;
 use Railt\Tests\Parser\Impl\JsonLexerBuilder;
 use Railt\Tests\Parser\Impl\PP2GrammarBuilder;
 use Railt\Tests\Parser\Impl\PP2LexerBuilder;
@@ -48,9 +49,19 @@ class ParserTestCase extends TestCase
                 (new JsonGrammarBuilder())->getGrammar(),
                 __DIR__ . '/resources/json/*.json',
             ],
+            'JSON (Compiled Lexer + Compiled Parser)'              => [
+                new JsonLexer(),
+                new JsonGrammar(),
+                __DIR__ . '/resources/json/*.json',
+            ],
             'JSON (Lexer Builder + Compiled Parser)'              => [
                 (new JsonLexerBuilder())->getLexer(),
                 new JsonGrammar(),
+                __DIR__ . '/resources/json/*.json',
+            ],
+            'JSON (Compiled Lexer + Parser Builder)'              => [
+                new JsonLexer(),
+                (new JsonGrammarBuilder())->getGrammar(),
                 __DIR__ . '/resources/json/*.json',
             ],
             'SDL (Lexer Builder + Parser Builder)'               => [
@@ -94,7 +105,7 @@ class ParserTestCase extends TestCase
     {
         $ast = (new Parser($lexer, $grammar))->parse($file);
 
-        $astString = (new HoaDumper($ast))->toString() . "\n";
+        $astString = new HoaDumper($ast) . "\n";
         $out = $file->getPathname() . '.txt';
 
         if (! \is_file($out)) {

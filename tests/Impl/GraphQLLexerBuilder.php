@@ -9,13 +9,14 @@ declare(strict_types=1);
 
 namespace Railt\Tests\Parser\Impl;
 
-use Railt\Lexer\Driver\NativeRegex;
+use Railt\Lexer\Builder;
+use Railt\Lexer\Builder\ProvidesLexer;
 use Railt\Lexer\LexerInterface;
 
 /**
  * Class GraphQLLexerBuilder
  */
-class GraphQLLexerBuilder
+class GraphQLLexerBuilder implements ProvidesLexer
 {
     public const T_AND = 'T_AND';
     public const T_OR = 'T_OR';
@@ -117,23 +118,14 @@ class GraphQLLexerBuilder
         self::T_EXTENDS           => '(?<=\\b)extends\\b',
         self::T_IMPLEMENTS        => '(?<=\\b)implements\\b',
         self::T_ON                => '(?<=\\b)on\\b',
-        self::T_PLUS              => '\\\\+',
-        self::T_MINUS             => '\\\\-',
+        self::T_PLUS              => '\\+',
+        self::T_MINUS             => '\\-',
         self::T_DIV               => '\\\\/',
-        self::T_MUL               => '\\\\*',
+        self::T_MUL               => '\\*',
         self::T_VARIABLE          => '\\$([a-zA-Z_\\x7f-\\xff][a-zA-Z0-9_\\x7f-\\xff]*)',
         self::T_NAME              => '[a-zA-Z_\\x7f-\\xff][a-zA-Z0-9_\\x7f-\\xff]*',
         self::T_COMMENT           => '#[^\\n]*',
-        self::T_HTAB              => '\\x09',
-        self::T_LF                => '\\x0A',
-        self::T_CR                => '\\x0D',
-        self::T_WHITESPACE        => '\\x20',
-        self::T_UTF32BE_BOM       => '^\\x00\\x00\\xFE\\xFF',
-        self::T_UTF32LE_BOM       => '^\\xFE\\xFF\\x00\\x00',
-        self::T_UTF16BE_BOM       => '^\\xFE\\xFF',
-        self::T_UTF16LE_BOM       => '^\\xFF\\xFE',
-        self::T_UTF8_BOM          => '^\\xEF\\xBB\\xBF',
-        self::T_UTF7_BOM          => '^\\x2B\\x2F\\x76\\x38\\x2B\\x2F\\x76\\x39\\x2B\\x2F\\x76\\x2B\\x2B\\x2F\\x76\\x2F',
+        self::T_WHITESPACE        => '(\\x20|\\x09|\\x0A|\\x0D)+'
     ];
 
     /**
@@ -143,16 +135,7 @@ class GraphQLLexerBuilder
      */
     protected const LEXER_SKIPPED_TOKENS = [
         'T_COMMENT',
-        'T_HTAB',
-        'T_LF',
-        'T_CR',
         'T_WHITESPACE',
-        'T_UTF32BE_BOM',
-        'T_UTF32LE_BOM',
-        'T_UTF16BE_BOM',
-        'T_UTF16LE_BOM',
-        'T_UTF8_BOM',
-        'T_UTF7_BOM',
     ];
 
     /**
@@ -160,6 +143,16 @@ class GraphQLLexerBuilder
      */
     public function getLexer(): LexerInterface
     {
-        return new NativeRegex(static::LEXER_TOKENS, static::LEXER_SKIPPED_TOKENS);
+        $builder = new Builder();
+
+        foreach (static::LEXER_TOKENS as $name => $pcre) {
+            $builder->add($name, $pcre);
+        }
+
+        foreach (static::LEXER_SKIPPED_TOKENS as $name) {
+            $builder->skip($name);
+        }
+
+        return $builder->build();
     }
 }
