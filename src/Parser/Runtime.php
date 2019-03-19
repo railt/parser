@@ -273,6 +273,7 @@ class Runtime implements RuntimeInterface
 
         do {
             $last = \array_pop($this->trace);
+
             if ($last instanceof Entry) {
                 $type = $this->grammar->actions[$last->getId()];
                 $found = $type === GrammarInterface::TYPE_ALTERNATION;
