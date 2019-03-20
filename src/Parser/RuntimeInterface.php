@@ -9,13 +9,15 @@ declare(strict_types=1);
 
 namespace Railt\Parser;
 
-use Railt\Io\Readable;
+use Railt\Parser\Ast\LeafInterface;
+use Railt\Parser\Ast\RuleInterface;
+use Railt\Parser\Runtime\OverridesAbstractSyntaxTree;
 use Railt\Parser\Runtime\StreamInterface;
 
 /**
- * Interface ParserRuntimeInterface
+ * Interface RuntimeInterface
  */
-interface RuntimeInterface
+interface RuntimeInterface extends OverridesAbstractSyntaxTree
 {
     /**
      * @param StreamInterface $tokens

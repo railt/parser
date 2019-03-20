@@ -405,7 +405,7 @@ class Runtime implements RuntimeInterface
      * @param int $offset
      * @return LeafInterface|mixed
      */
-    protected function leaf(string $token, string $value, int $offset)
+    public function leaf(string $token, string $value, int $offset)
     {
         return new Leaf($token, $value, $offset);
     }
@@ -416,7 +416,7 @@ class Runtime implements RuntimeInterface
      * @param int $offset
      * @return RuleInterface|mixed
      */
-    protected function rule(string $rule, array $children, int $offset)
+    public function rule(string $rule, array $children, int $offset)
     {
         return new AstRule($rule, $children, $offset);
     }

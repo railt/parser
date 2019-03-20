@@ -18,7 +18,6 @@ use Railt\Parser\Exception\ParserException;
 use Railt\Parser\Exception\RuntimeException;
 use Railt\Parser\Exception\UnexpectedTokenException;
 use Railt\Parser\Exception\UnrecognizedTokenException;
-use Railt\Parser\Runtime\GrammarInterface;
 use Railt\Parser\Runtime\TokenStream;
 
 /**
@@ -40,12 +39,12 @@ class Parser implements ParserInterface
      * AbstractParser constructor.
      *
      * @param LexerInterface $lexer
-     * @param GrammarInterface $grammar
+     * @param RuntimeInterface $runtime
      */
-    public function __construct(LexerInterface $lexer, GrammarInterface $grammar)
+    public function __construct(LexerInterface $lexer, RuntimeInterface $runtime)
     {
         $this->lexer = $lexer;
-        $this->runtime = new Runtime($grammar);
+        $this->runtime = $runtime;
     }
 
     /**

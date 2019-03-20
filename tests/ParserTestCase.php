@@ -14,6 +14,7 @@ use Railt\Io\Readable;
 use Railt\Lexer\LexerInterface;
 use Railt\Parser\Dumper\HoaDumper;
 use Railt\Parser\Parser;
+use Railt\Parser\Runtime;
 use Railt\Parser\Runtime\GrammarInterface;
 use Railt\Tests\Parser\Impl\GraphQLGrammar;
 use Railt\Tests\Parser\Impl\GraphQLGrammarBuilder;
@@ -103,7 +104,7 @@ class ParserTestCase extends TestCase
      */
     public function testCompareAst(LexerInterface $lexer, GrammarInterface $grammar, Readable $file): void
     {
-        $ast = (new Parser($lexer, $grammar))->parse($file);
+        $ast = (new Parser($lexer, new Runtime($grammar)))->parse($file);
 
         $astString = new HoaDumper($ast) . "\n";
         $out = $file->getPathname() . '.txt';
