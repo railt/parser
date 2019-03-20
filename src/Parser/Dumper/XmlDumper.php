@@ -101,16 +101,6 @@ class XmlDumper implements NodeDumperInterface
             $token = $this->createElement($root, $this->getName($ast), $ast->getValue());
             $this->renderAttributes($root, $token, $ast);
 
-            if (\count($ast->getValues()) > 1) {
-                foreach ($ast->getValues() as $i => $value) {
-                    if ($i === 0) {
-                        continue;
-                    }
-
-                    $this->renderAttribute($token, 'value:' . $i, $value);
-                }
-            }
-
             return $token;
         }
 
