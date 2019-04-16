@@ -9,7 +9,7 @@ declare(strict_types=1);
 
 namespace Railt\Tests\Parser;
 
-use Railt\Parser\Runtime\Buffer;
+use Railt\Component\Parser\TokenStream\Buffer;
 
 /**
  * Class BufferIteratorTestCase
@@ -63,7 +63,6 @@ class BufferIteratorTestCase extends TestCase
      * @return void
      * @throws \PHPUnit\Framework\ExpectationFailedException
      * @throws \PHPUnit\Framework\Exception
-     * @throws \SebastianBergmann\RecursionContext\InvalidArgumentException
      */
     public function testIterableOverCrowdedBuffer(): void
     {
@@ -80,7 +79,6 @@ class BufferIteratorTestCase extends TestCase
      * @return void
      * @throws \PHPUnit\Framework\ExpectationFailedException
      * @throws \PHPUnit\Framework\Exception
-     * @throws \SebastianBergmann\RecursionContext\InvalidArgumentException
      */
     public function testUnchangedBufferVolume(): void
     {
@@ -107,7 +105,6 @@ class BufferIteratorTestCase extends TestCase
      * @return void
      * @throws \PHPUnit\Framework\ExpectationFailedException
      * @throws \PHPUnit\Framework\Exception
-     * @throws \SebastianBergmann\RecursionContext\InvalidArgumentException
      */
     public function testRewindableToAvailableVolume(): void
     {

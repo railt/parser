@@ -7,10 +7,10 @@
  */
 declare(strict_types=1);
 
-namespace Railt\Parser;
+namespace Railt\Component\Parser;
 
-use Railt\Io\Readable;
-use Railt\Parser\Ast\RuleInterface;
+use Railt\Component\Io\Readable;
+use Railt\Component\Parser\Ast\RuleInterface;
 
 /**
  * Interface ParserInterface
@@ -22,4 +22,11 @@ interface ParserInterface
      * @return RuleInterface|mixed
      */
     public function parse(Readable $input);
+
+    /**
+     * @param string $rule
+     * @param \Closure $then
+     * @return ParserInterface|$this
+     */
+    public function extend(string $rule, \Closure $then): self;
 }

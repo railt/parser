@@ -7,7 +7,7 @@
  */
 declare(strict_types=1);
 
-namespace Railt\Parser\Ast;
+namespace Railt\Component\Parser\Ast;
 
 /**
  * Class Rule
@@ -50,7 +50,7 @@ class Rule extends Node implements RuleInterface, \ArrayAccess
     }
 
     /**
-     * @return \Traversable|LeafInterface[]|RuleInterface[]|NodeInterface[]
+     * @return \Traversable|LeafInterface[]|RuleInterface[]
      */
     public function getIterator(): \Traversable
     {
@@ -58,19 +58,30 @@ class Rule extends Node implements RuleInterface, \ArrayAccess
     }
 
     /**
-     * @return string
+     * @param int $group
+     * @return null|string
      */
-    public function getValue(): string
+    public function getValue(int $group = 0): ?string
     {
         $result = '';
 
         foreach ($this->getChildren() as $child) {
             if (\method_exists($child, 'getValue')) {
-                $result .= $child->getValue();
+                $result .= $child->getValue($group);
             }
         }
 
         return $result;
+    }
+
+    /**
+     * @return iterable|string[]|\Generator
+     */
+    public function getValues(): iterable
+    {
+        foreach ($this->getChildren() as $child) {
+            yield from $child->getValues();
+        }
     }
 
     /**
@@ -101,7 +112,7 @@ class Rule extends Node implements RuleInterface, \ArrayAccess
      */
     public function getChild(int $index)
     {
-        return $this->children[$index] ?? null;
+        return $this->getChildren()[$index] ?? null;
     }
 
     /**
@@ -123,5 +134,49 @@ class Rule extends Node implements RuleInterface, \ArrayAccess
         \assert(\is_int($offset));
 
         unset($this->children[$offset]);
+    }
+
+    /**
+     * @param string $name
+     * @param int|null $depth
+     * @return null|NodeInterface
+     */
+    public function first(string $name, int $depth = null): ?NodeInterface
+    {
+        return $this->find($name, $depth)->current();
+    }
+
+    /**
+     * @param string $name
+     * @param int|null $depth
+     * @return iterable|\Generator
+     */
+    public function find(string $name, int $depth = null): iterable
+    {
+        $depth = \max(0, $depth ?? \PHP_INT_MAX);
+        if ($this->getName() === $name) {
+            yield $this;
+        }
+        if ($depth > 0) {
+            yield from $this->findChildren($this, $name, $depth);
+        }
+    }
+
+    /**
+     * @param RuleInterface $rule
+     * @param string $name
+     * @param int $depth
+     * @return iterable
+     */
+    protected function findChildren(RuleInterface $rule, string $name, int $depth): iterable
+    {
+        foreach ($rule->getChildren() as $child) {
+            if ($child->getName() === $name) {
+                yield $child;
+            }
+            if ($depth > 1 && $child instanceof RuleInterface) {
+                yield from $this->findChildren($child, $name, $depth - 1);
+            }
+        }
     }
 }

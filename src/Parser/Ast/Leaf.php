@@ -7,7 +7,9 @@
  */
 declare(strict_types=1);
 
-namespace Railt\Parser\Ast;
+namespace Railt\Component\Parser\Ast;
+
+use Railt\Component\Lexer\TokenInterface;
 
 /**
  * Class Leaf
@@ -15,28 +17,35 @@ namespace Railt\Parser\Ast;
 class Leaf extends Node implements LeafInterface
 {
     /**
-     * @var string
+     * @var array
      */
     private $value;
 
     /**
      * Leaf constructor.
      *
-     * @param string $name
-     * @param string $value
-     * @param int $offset
+     * @param TokenInterface $token
      */
-    public function __construct(string $name, string $value, int $offset)
+    public function __construct(TokenInterface $token)
     {
-        parent::__construct($name, $offset);
+        parent::__construct($token->getName(), $token->getOffset());
 
-        $this->value = $value;
+        $this->value = $token->getGroups();
     }
 
     /**
-     * @return string
+     * @param int $group
+     * @return null|string
      */
-    public function getValue(): string
+    public function getValue(int $group = 0): ?string
+    {
+        return $this->value[$group] ?? null;
+    }
+
+    /**
+     * @return iterable|string[]
+     */
+    public function getValues(): iterable
     {
         return $this->value;
     }

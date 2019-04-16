@@ -7,9 +7,9 @@
  */
 declare(strict_types=1);
 
-namespace Railt\Parser\Ast;
+namespace Railt\Component\Parser\Ast;
 
-use Railt\Parser\Dumper\NodeDumperInterface;
+use Railt\Component\Parser\Dumper\NodeDumperInterface;
 
 /**
  * Interface NodeInterface
@@ -33,9 +33,15 @@ interface NodeInterface
     public function getOffset(): int;
 
     /**
-     * @return string
+     * @return iterable|string[]|\Generator
      */
-    public function getValue(): string;
+    public function getValues(): iterable;
+
+    /**
+     * @param int $group
+     * @return string|null
+     */
+    public function getValue(int $group = 0): ?string;
 
     /**
      * @param NodeDumperInterface|string $dumper

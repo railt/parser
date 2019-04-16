@@ -7,7 +7,7 @@
  */
 declare(strict_types=1);
 
-namespace Railt\Parser\Dumper;
+namespace Railt\Component\Parser\Dumper;
 
 /**
  * Interface Dumper
@@ -17,5 +17,5 @@ interface NodeDumperInterface
     /**
      * @return string
      */
-    public function __toString(): string;
+    public function toString(): string;
 }

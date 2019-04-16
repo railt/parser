@@ -7,10 +7,10 @@
  */
 declare(strict_types=1);
 
-namespace Railt\Parser\Ast;
+namespace Railt\Component\Parser\Ast;
 
-use Railt\Parser\Dumper\NodeDumperInterface;
-use Railt\Parser\Dumper\XmlDumper;
+use Railt\Component\Parser\Dumper\NodeDumperInterface;
+use Railt\Component\Parser\Dumper\XmlDumper;
 
 /**
  * Class Node

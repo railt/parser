@@ -10,7 +10,7 @@ declare(strict_types=1);
 namespace Railt\Tests\Parser;
 
 use PHPUnit\Framework\TestCase as BaseTestCase;
-use Railt\Parser\Ast\NodeInterface;
+use Railt\Component\Parser\Ast\NodeInterface;
 
 /**
  * Class TestCase
@@ -21,7 +21,6 @@ abstract class TestCase extends BaseTestCase
      * @param string $expected
      * @param null|NodeInterface $actual
      * @throws \PHPUnit\Framework\Exception
-     * @throws \SebastianBergmann\RecursionContext\InvalidArgumentException
      */
     protected function assertAst(string $expected, ?NodeInterface $actual): void
     {

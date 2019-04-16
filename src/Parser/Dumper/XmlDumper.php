@@ -7,12 +7,11 @@
  */
 declare(strict_types=1);
 
-namespace Railt\Parser\Dumper;
+namespace Railt\Component\Parser\Dumper;
 
-use Railt\Dumper\TypeDumper;
-use Railt\Parser\Ast\LeafInterface;
-use Railt\Parser\Ast\NodeInterface;
-use Railt\Parser\Ast\RuleInterface;
+use Railt\Component\Parser\Ast\LeafInterface;
+use Railt\Component\Parser\Ast\NodeInterface;
+use Railt\Component\Parser\Ast\RuleInterface;
 
 /**
  * Class XmlDumper
@@ -100,6 +99,16 @@ class XmlDumper implements NodeDumperInterface
         if ($ast instanceof LeafInterface) {
             $token = $this->createElement($root, $this->getName($ast), $ast->getValue());
             $this->renderAttributes($root, $token, $ast);
+
+            if (\count($ast->getValues()) > 1) {
+                foreach ($ast->getValues() as $i => $value) {
+                    if ($i === 0) {
+                        continue;
+                    }
+
+                    $this->renderAttribute($token, 'value:' . $i, $value);
+                }
+            }
 
             return $token;
         }
@@ -213,10 +222,6 @@ class XmlDumper implements NodeDumperInterface
      */
     private function value($value): string
     {
-        if (\class_exists(TypeDumper::class)) {
-            return TypeDumper::render($value);
-        }
-
         switch (true) {
             case \is_scalar($value):
                 return (string)$value;

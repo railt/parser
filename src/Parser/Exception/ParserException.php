@@ -7,13 +7,13 @@
  */
 declare(strict_types=1);
 
-namespace Railt\Parser\Exception;
+namespace Railt\Component\Parser\Exception;
 
-use Railt\Io\Exception\ExternalFileException;
+use Railt\Component\Exception\ExternalException;
 
 /**
  * Class ParserException
  */
-class ParserException extends ExternalFileException
+abstract class ParserException extends ExternalException
 {
 }

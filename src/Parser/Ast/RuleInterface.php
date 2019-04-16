@@ -7,7 +7,7 @@
  */
 declare(strict_types=1);
 
-namespace Railt\Parser\Ast;
+namespace Railt\Component\Parser\Ast;
 
 /**
  * Interface RuleInterface

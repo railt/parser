@@ -7,72 +7,61 @@
  */
 declare(strict_types=1);
 
-namespace Railt\Parser\Dumper;
+namespace Railt\Component\Parser\Dumper;
 
-use Railt\Parser\Ast\LeafInterface;
-use Railt\Parser\Ast\RuleInterface;
+use Railt\Component\Parser\Ast\LeafInterface;
+use Railt\Component\Parser\Ast\NodeInterface;
+use Railt\Component\Parser\Ast\RuleInterface;
 
 /**
  * Class HoaDumper
  */
-class HoaDumper extends Dumper
+class HoaDumper implements NodeDumperInterface
 {
     /**
-     * @var string
+     * @var RuleInterface
      */
-    private const LEAF_PATTERN = 'token(%s, %s)';
+    private $ast;
 
     /**
-     * @var string
+     * HoaDumper constructor.
+     *
+     * @param RuleInterface $ast
      */
-    private const LEAF_UNKNOWN = 'token(%s)';
-
-    /**
-     * @param mixed|RuleInterface $rule
-     * @param int $depth
-     * @return string
-     */
-    protected function rule($rule, int $depth = 0): string
+    public function __construct(RuleInterface $ast)
     {
-        $isRule = \is_iterable($rule);
-
-        if (! $isRule) {
-            return $this->leaf($rule, $depth);
-        }
-
-        $content = [
-            $this->prefix($depth) . ($rule instanceof RuleInterface ? $rule->getName() : \get_class($rule))
-        ];
-
-        if (\is_iterable($rule)) {
-            foreach ($rule as $child) {
-                $content[] = $this->rule($child, $depth + 1);
-            }
-        }
-
-        return \implode("\n", $content);
+        $this->ast = $ast;
     }
 
     /**
-     * @param mixed|LeafInterface $leaf
+     * @param NodeInterface|RuleInterface|LeafInterface $node
      * @param int $depth
-     * @return string
+     * @return array
      */
-    protected function leaf($leaf, int $depth = 0): string
+    private function render(NodeInterface $node, int $depth = 1): array
     {
-        if ($leaf instanceof LeafInterface) {
-            return $this->prefix($depth) . \sprintf(self::LEAF_PATTERN, $leaf->getName(), $leaf->getValue());
+        $prefix = \str_repeat('>  ', $depth);
+
+        if ($node instanceof LeafInterface) {
+            return [
+                $prefix . 'token(' . $node->getName() . ', ' . $node->getValue() . ')',
+            ];
         }
 
-        return \sprintf(self::LEAF_UNKNOWN, \get_class($leaf));
+        $result = [$prefix . $node->getName()];
+
+        foreach ($node->getChildren() as $child) {
+            $result = \array_merge($result, $this->render($child, $depth + 1));
+        }
+
+        return $result;
     }
 
     /**
-     * @param int $depth
      * @return string
      */
-    private function prefix(int $depth): string
+    public function toString(): string
     {
-        return \str_repeat('>  ', $depth + 1);
+        return \implode("\n", $this->render($this->ast));
     }
 }
