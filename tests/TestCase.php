@@ -7,10 +7,10 @@
  */
 declare(strict_types=1);
 
-namespace Railt\Tests\Parser;
+namespace Railt\Parser\Tests;
 
+use Railt\Parser\Generator\Generator;
 use PHPUnit\Framework\TestCase as BaseTestCase;
-use Railt\Parser\Ast\NodeInterface;
 
 /**
  * Class TestCase
@@ -18,19 +18,13 @@ use Railt\Parser\Ast\NodeInterface;
 abstract class TestCase extends BaseTestCase
 {
     /**
-     * @param string $expected
-     * @param null|NodeInterface $actual
-     * @throws \PHPUnit\Framework\Exception
+     * @return void
+     * @throws \Throwable
      */
-    protected function assertAst(string $expected, ?NodeInterface $actual): void
+    public function setUp(): void
     {
-        $toArray = function (string $code): array {
-            $parts = \explode("\n", \str_replace("\r", '', $code));
+        $generator = new Generator();
 
-            return \array_map('\\trim', $parts);
-        };
-
-        $this->assertSame($toArray($expected), $toArray((string)$actual),
-            \sprintf("Bad ast in: \n%s", (string)$actual));
+        $generator->generateAndSave();
     }
 }
